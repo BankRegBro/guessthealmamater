@@ -225,9 +225,13 @@
   .lb-row:last-child{border-bottom:none}
   .lb-row .rk{font-family:'Press Start 2P',monospace;font-size:.58rem;color:var(--muted);width:26px;flex:none}
   .lb-row .ini{font-family:'Press Start 2P',monospace;font-size:.72rem;color:var(--cyan);letter-spacing:.12em;flex:1 1 auto}
-  .lb-row .sc{font-family:'Press Start 2P',monospace;font-size:.72rem;color:var(--yellow);flex:none}
+  .lb-row .sc{font-family:'Press Start 2P',monospace;font-size:.72rem;color:var(--yellow);flex:none;min-width:34px;text-align:right}
+  .lb-row .tm{font-family:'Press Start 2P',monospace;font-size:.62rem;color:var(--cyan);flex:none;min-width:54px;text-align:right}
   .lb-row.me{background:rgba(57,255,106,.14)}
   .lb-row.me .ini{color:var(--green)}
+  .lb-head{padding-top:10px;padding-bottom:6px}
+  .lb-head:hover{background:none}
+  .lb-head .sc,.lb-head .tm{color:var(--muted);font-size:.46rem;letter-spacing:.08em}
   .lb-empty,.lb-msg{font-family:'Russo One',sans-serif;color:var(--muted);text-align:center;padding:15px;font-size:.9rem}
 
   /* ---------- Focus states ---------- */
@@ -1019,6 +1023,7 @@ let league = "all";
 let round = [];
 let idx = 0, score = 0, streak = 0, answered = false;
 let misses = [];
+let roundStart = 0, elapsedMs = 0;
 
 const $ = id => document.getElementById(id);
 const startScreen = $("startScreen"), quizScreen = $("quizScreen"), resultsScreen = $("resultsScreen");
@@ -1036,6 +1041,7 @@ function diffLabelFor(dv){ return dv==="mainstream" ? "ROOKIE" : dv==="deepcut" 
 function comboLabelFor(lg,dv){ return (lg==="all" ? "" : lg.toUpperCase()+" \u00b7 ") + diffLabelFor(dv); }
 function diffLabel(){ return diffLabelFor(diff); }
 function comboLabel(){ return comboLabelFor(league, diff); }
+function fmtTime(ms){ if(ms==null || !isFinite(ms) || ms<0) return "\u2014"; const s=Math.round(ms/1000); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); }
 function updatePoolNote(){ $("poolNote").textContent = `${currentPool().length} athletes loaded \u00b7 ${roundLen()} per game`; }
 function updateBest(){
   const b = getBest(), N = roundLen();
@@ -1087,6 +1093,7 @@ function startRound(){
   round = sample(pool, Math.min(QUESTIONS_PER_ROUND, pool.length)).map(a=>({ ath:a, options:buildOptions(a, recent) }));
   $("qTot").textContent = round.length;
   idx = 0; score = 0; streak = 0; misses = [];
+  roundStart = Date.now(); elapsedMs = 0;
   document.body.classList.remove("onfire");
   startScreen.classList.add("hidden");
   resultsScreen.classList.add("hidden");
@@ -1190,6 +1197,7 @@ function advance(){
 }
 
 function showResults(){
+  elapsedMs = Date.now() - roundStart;
   quizScreen.classList.add("hidden");
   resultsScreen.classList.remove("hidden");
   $("progFill").style.width = "100%";
@@ -1199,7 +1207,7 @@ function showResults(){
   document.querySelector(".outof").textContent = " / " + total;
 
   const pct = Math.round(score/total*100);
-  $("finalMeta").textContent = `${pct}% \u00b7 ${comboLabel()}`;
+  $("finalMeta").textContent = `${pct}% \u00b7 ${comboLabel()} \u00b7 \u23f1 ${fmtTime(elapsedMs)}`;
 
   const v = $("finalVerdict");
   if(pct===100) v.textContent="PERFECT GAME \u2014 HALL OF FAME";
@@ -1242,9 +1250,11 @@ async function lbFetchTop(lg=league, dv=diff){
   if(!r.ok) throw new Error("http");
   return (await r.json()).top || [];
 }
+// Read a time value (ms) defensively across possible field names.
+function lbTime(e){ const v = e && (e.time ?? e.ms ?? e.t); return (typeof v==="number" && isFinite(v) && v>=0) ? v : null; }
 async function lbPost(initials){
   const r = await fetch(`${LB}/score`, { method:"POST", headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({ initials, ini:initials, name:initials, score, league, division: diff }) });
+    body: JSON.stringify({ initials, ini:initials, name:initials, score, time: elapsedMs, ms: elapsedMs, league, division: diff }) });
   if(!r.ok) throw new Error("http");
   return r.json();
 }
@@ -1252,12 +1262,13 @@ function lbMessage(target, msg){ $(target).innerHTML = `<div class="lb-title">Le
 function renderBoard(target, top, mine, label){
   const head = `<div class="lb-title">Leaderboard \u2014 ${label}</div>`;
   if(!top || !top.length){ $(target).innerHTML = head + `<div class="lb-empty">No scores yet \u2014 be the first.</div>`; return; }
+  const colhead = `<div class="lb-row lb-head"><span class="rk"></span><span class="ini"></span><span class="sc">PTS</span><span class="tm">TIME</span></div>`;
   const rows = top.map((e,i)=>{
     const ini = lbIni(e) || "\u2014\u2014\u2014";
     const isMe = mine && lbIni(e)===mine.initials && e.score===mine.score && (i+1)===mine.rank;
-    return `<div class="lb-row${isMe?" me":""}"><span class="rk">${i+1}</span><span class="ini">${esc(ini)}</span><span class="sc">${e.score}</span></div>`;
+    return `<div class="lb-row${isMe?" me":""}"><span class="rk">${i+1}</span><span class="ini">${esc(ini)}</span><span class="sc">${e.score}</span><span class="tm">${fmtTime(lbTime(e))}</span></div>`;
   }).join("");
-  $(target).innerHTML = head + rows;
+  $(target).innerHTML = head + colhead + rows;
 }
 async function lbShow(){
   if(!lbEnabled()){ $("lbWrap").classList.add("hidden"); return; }
