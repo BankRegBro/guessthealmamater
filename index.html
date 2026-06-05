@@ -201,6 +201,13 @@
   .linkbtn{display:block;margin:14px auto 0;background:none;border:none;cursor:pointer;
     font-family:'Russo One',sans-serif;font-size:.82rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
   .linkbtn:hover{color:var(--cyan)}
+  .lb-cta{display:block;margin:16px auto 0;cursor:pointer;font-family:'Press Start 2P',monospace;
+    font-size:.6rem;line-height:1.5;letter-spacing:.05em;color:var(--cyan);background:rgba(25,224,255,.10);
+    border:2px solid var(--cyan);border-radius:8px;padding:12px 16px;text-transform:uppercase;transition:.12s;
+    animation:lbpulse 2.4s ease-in-out infinite}
+  .lb-cta:hover{background:rgba(25,224,255,.22);color:#fff;border-color:#fff}
+  .lb-cta:active{transform:translateY(2px)}
+  @keyframes lbpulse{0%,100%{box-shadow:0 0 0 0 rgba(25,224,255,0)}50%{box-shadow:0 0 16px 2px rgba(25,224,255,.5)}}
 
   /* ---------- Leaderboard ---------- */
   .lb-wrap{margin-top:22px}
@@ -236,7 +243,7 @@
 
   /* ---------- Focus states ---------- */
   .opt:focus-visible,.seg button:focus-visible,.arcade-btn:focus-visible,.next-btn:focus-visible,
-  .viewtoggle button:focus-visible,.linkbtn:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+  .viewtoggle button:focus-visible,.linkbtn:focus-visible,.lb-cta:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
 
   /* ---------- Mobile view (default) ---------- */
   body.mobileview{padding-top:54px}
@@ -264,6 +271,7 @@
     .card.shake,.card.flash{animation:none}
     .verdict.show{animation:none}
     .opt{opacity:1;transform:none;animation:none}
+    .lb-cta{animation:none}
   }
   .hidden{display:none}
 </style>
@@ -299,7 +307,7 @@
     </div>
     <button class="arcade-btn" id="startBtn">PRESS START</button>
     <div id="bestNote"></div>
-    <button class="linkbtn" id="viewLbBtn" style="margin-top:2px">&#9733; View leaderboard</button>
+    <button class="lb-cta" id="viewLbBtn">&#9733; VIEW LEADERBOARD &#9733;</button>
     <div class="fineprint" id="poolNote"></div>
     <div class="fineprint">Tip: use keys <b>A&ndash;F</b> or <b>1&ndash;6</b> to answer, <b>Enter</b> to advance.</div>
   </section>
