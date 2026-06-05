@@ -202,6 +202,34 @@
     font-family:'Russo One',sans-serif;font-size:.82rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
   .linkbtn:hover{color:var(--cyan)}
 
+  /* ---------- Leaderboard ---------- */
+  .lb-wrap{margin-top:22px}
+  .lb-entry{margin-bottom:14px;text-align:center}
+  .lb-entry-label{font-family:'Press Start 2P',monospace;font-size:.58rem;color:var(--yellow);
+    letter-spacing:.05em;margin-bottom:12px;line-height:1.6;text-shadow:0 0 8px rgba(255,212,0,.4)}
+  .lb-entry-row{display:flex;gap:10px;justify-content:center;align-items:stretch}
+  .lb-input{font-family:'Press Start 2P',monospace;font-size:1.05rem;letter-spacing:.32em;
+    text-transform:uppercase;text-align:center;width:140px;color:var(--cyan);background:var(--ink);
+    border:2px solid var(--cyan);border-radius:5px;padding:12px 6px 10px 12px;
+    box-shadow:3px 3px 0 var(--ink);caret-color:var(--cyan)}
+  .lb-input::placeholder{color:#3a3c84}
+  .lb-submit{font-family:'Anton',sans-serif;font-size:1.15rem;letter-spacing:.04em;color:var(--ink);
+    background:var(--yellow);border:none;border-radius:5px;padding:0 20px;cursor:pointer;text-transform:uppercase;
+    box-shadow:0 0 0 2px var(--ink),0 4px 0 var(--orange)}
+  .lb-submit:active{transform:translateY(3px);box-shadow:0 0 0 2px var(--ink),0 1px 0 var(--orange)}
+  .lb-submit:disabled{opacity:.5;cursor:default}
+  .lb-board{border:2px solid #2a2c66;border-radius:6px;overflow:hidden}
+  .lb-title{font-family:'Press Start 2P',monospace;font-size:.6rem;letter-spacing:.06em;color:var(--magenta);
+    text-align:center;padding:11px 6px;background:var(--ink);border-bottom:2px solid #2a2c66;line-height:1.6}
+  .lb-row{display:flex;align-items:center;gap:12px;padding:9px 14px;border-bottom:1px solid #1c1d4a}
+  .lb-row:last-child{border-bottom:none}
+  .lb-row .rk{font-family:'Press Start 2P',monospace;font-size:.58rem;color:var(--muted);width:26px;flex:none}
+  .lb-row .ini{font-family:'Press Start 2P',monospace;font-size:.72rem;color:var(--cyan);letter-spacing:.12em;flex:1 1 auto}
+  .lb-row .sc{font-family:'Press Start 2P',monospace;font-size:.72rem;color:var(--yellow);flex:none}
+  .lb-row.me{background:rgba(57,255,106,.14)}
+  .lb-row.me .ini{color:var(--green)}
+  .lb-empty,.lb-msg{font-family:'Russo One',sans-serif;color:var(--muted);text-align:center;padding:15px;font-size:.9rem}
+
   /* ---------- Focus states ---------- */
   .opt:focus-visible,.seg button:focus-visible,.arcade-btn:focus-visible,.next-btn:focus-visible,
   .viewtoggle button:focus-visible,.linkbtn:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
@@ -309,6 +337,18 @@
       <div class="meta" id="finalMeta"></div>
       <div id="hiFlag"></div>
     </div>
+
+    <div id="lbWrap" class="lb-wrap hidden">
+      <div id="lbEntry" class="lb-entry hidden">
+        <div class="lb-entry-label">Enter initials for the leaderboard</div>
+        <div class="lb-entry-row">
+          <input id="lbInitials" class="lb-input" maxlength="3" placeholder="AAA" autocomplete="off" spellcheck="false" aria-label="Your initials">
+          <button id="lbSubmit" class="lb-submit">Submit</button>
+        </div>
+      </div>
+      <div id="lbBoard" class="lb-board"></div>
+    </div>
+
     <div class="review">
       <h3 id="reviewHead">THE ONES THAT GOT AWAY</h3>
       <div id="missList"></div>
@@ -326,6 +366,15 @@
    played abroad, drafted out of high school, etc.)
    tier: "main" (recognizable) | "deep" (obscure / surprising)
    ============================================================ */
+/* ============================================================
+   LEADERBOARD CONFIG
+   Paste your deployed Cloudflare Worker URL here to switch on the
+   global leaderboard (no trailing slash). Leave "" to disable it
+   (the game still works fully, just without the online board).
+   e.g. "https://alma-mater-match-leaderboard.YOURNAME.workers.dev"
+   ============================================================ */
+const LEADERBOARD_API = "https://almamatermatch.joeysamowitz.workers.dev";
+
 const NONE = "No U.S. college";
 
 const ATHLETES = [
@@ -609,11 +658,73 @@ const ATHLETES = [
   {n:"Brooks Koepka",     s:"golf", c:"Florida State",          t:"main"},
   {n:"Dustin Johnson",    s:"golf", c:"Coastal Carolina",       t:"deep"},
   {n:"Justin Rose",       s:"golf", c:NONE,                     t:"deep"},
+
+  // ---- EXPANSION 3: NFL (2000s on) ----
+  {n:"Alfred Morris",     s:"football", c:"Florida Atlantic",   t:"deep"},
+  {n:"Arian Foster",      s:"football", c:"Tennessee",          t:"deep"},
+  {n:"Maurice Jones-Drew",s:"football", c:"UCLA",               t:"deep"},
+  {n:"LeSean McCoy",      s:"football", c:"Pittsburgh",         t:"deep"},
+  {n:"DeMarco Murray",    s:"football", c:"Oklahoma",           t:"deep"},
+  {n:"Jamaal Charles",    s:"football", c:"Texas",              t:"deep"},
+  {n:"Chris Johnson",     s:"football", c:"East Carolina",      t:"deep"},
+  {n:"Steven Jackson",    s:"football", c:"Oregon State",       t:"deep"},
+  {n:"Matt Forte",        s:"football", c:"Tulane",             t:"deep"},
+  {n:"Le'Veon Bell",      s:"football", c:"Michigan State",     t:"deep"},
+  {n:"Aaron Jones",       s:"football", c:"UTEP",               t:"deep"},
+  {n:"Carson Palmer",     s:"football", c:"USC",                t:"deep"},
+  {n:"Matt Leinart",      s:"football", c:"USC",                t:"deep"},
+  {n:"Vince Young",       s:"football", c:"Texas",              t:"deep"},
+  {n:"Ezekiel Elliott",   s:"football", c:"Ohio State",         t:"main"},
+  {n:"Nick Chubb",        s:"football", c:"Georgia",            t:"deep"},
+  {n:"Todd Gurley",       s:"football", c:"Georgia",            t:"deep"},
+  {n:"Alvin Kamara",      s:"football", c:"Tennessee",          t:"deep"},
+  {n:"DeAndre Hopkins",   s:"football", c:"Clemson",            t:"deep"},
+  {n:"Mike Evans",        s:"football", c:"Texas A&M",          t:"deep"},
+  {n:"Odell Beckham Jr.", s:"football", c:"LSU",                t:"deep"},
+  {n:"Richard Sherman",   s:"football", c:"Stanford",           t:"deep"},
+  {n:"Luke Kuechly",      s:"football", c:"Boston College",     t:"deep"},
+  {n:"Myles Garrett",     s:"football", c:"Texas A&M",          t:"deep"},
+  {n:"Ndamukong Suh",     s:"football", c:"Nebraska",           t:"deep"},
+  {n:"Matthew Stafford",  s:"football", c:"Georgia",            t:"main"},
+  {n:"Kirk Cousins",      s:"football", c:"Michigan State",     t:"deep"},
+  {n:"Andy Dalton",       s:"football", c:"TCU",                t:"deep"},
+  {n:"Jared Goff",        s:"football", c:"California",         t:"deep"},
+  {n:"T.J. Watt",         s:"football", c:"Wisconsin",          t:"deep"},
+  {n:"Micah Parsons",     s:"football", c:"Penn State",         t:"deep"},
+  {n:"Nick Bosa",         s:"football", c:"Ohio State",         t:"deep"},
+
+  // ---- EXPANSION 3: NBA (2000s on) ----
+  {n:"Chris Bosh",        s:"basketball", c:"Georgia Tech",     t:"deep"},
+  {n:"Derrick Rose",      s:"basketball", c:"Memphis",          t:"deep"},
+  {n:"Kevin Love",        s:"basketball", c:"UCLA",             t:"deep"},
+  {n:"Joakim Noah",       s:"basketball", c:"Florida",          t:"deep"},
+  {n:"Al Horford",        s:"basketball", c:"Florida",          t:"deep"},
+  {n:"Brandon Roy",       s:"basketball", c:"Washington",       t:"deep"},
+  {n:"Aaron Gordon",      s:"basketball", c:"Arizona",          t:"deep"},
+  {n:"DeMar DeRozan",     s:"basketball", c:"USC",              t:"deep"},
+  {n:"Gordon Hayward",    s:"basketball", c:"Butler",           t:"deep"},
+  {n:"Kyle Lowry",        s:"basketball", c:"Villanova",        t:"deep"},
+  {n:"CJ McCollum",       s:"basketball", c:"Lehigh",           t:"deep"},
+  {n:"Jaylen Brown",      s:"basketball", c:"California",       t:"deep"},
+  {n:"Bradley Beal",      s:"basketball", c:"Florida",          t:"deep"},
+  {n:"Andre Drummond",    s:"basketball", c:"Connecticut",      t:"deep"},
+  {n:"LaMarcus Aldridge", s:"basketball", c:"Texas",            t:"deep"},
+  {n:"Greg Oden",         s:"basketball", c:"Ohio State",       t:"deep"},
+  {n:"Mike Conley",       s:"basketball", c:"Ohio State",       t:"deep"},
+  {n:"DeMarcus Cousins",  s:"basketball", c:"Kentucky",         t:"deep"},
+  {n:"Karl-Anthony Towns",s:"basketball", c:"Kentucky",         t:"main"},
+  {n:"Bam Adebayo",       s:"basketball", c:"Kentucky",         t:"deep"},
+  {n:"Brandon Ingram",    s:"basketball", c:"Duke",             t:"deep"},
+  {n:"Ben Simmons",       s:"basketball", c:"LSU",              t:"deep"},
+  {n:"Jaren Jackson Jr.", s:"basketball", c:"Michigan State",   t:"deep"},
+  {n:"Domantas Sabonis",  s:"basketball", c:"Gonzaga",          t:"deep"},
+  {n:"De'Aaron Fox",      s:"basketball", c:"Kentucky",         t:"deep"},
+  {n:"Buddy Hield",       s:"basketball", c:"Oklahoma",         t:"deep"},
 ];
 
 const POOLS = {
-  football:["Michigan","Tennessee","Texas Tech","California","Purdue","Ole Miss","Florida","Stanford","Clemson","Louisville","Oregon","Mississippi State","Penn State","Alabama","Oklahoma State","Southern Miss","Notre Dame","Pittsburgh","Florida State","Cincinnati","Arizona","Georgia Tech","Oklahoma","Miami (FL)","USC","Texas A&M","Wyoming","Jackson State","Mississippi Valley State","Buffalo","Central Michigan","Auburn","Ohio State","Georgia","LSU","Texas","Nebraska","Wisconsin","UCLA","Eastern Illinois","Northern Iowa","Alcorn State","Grambling State","Chattanooga","Savannah State","Texas Southern","Eastern Washington","North Dakota State","Miami (OH)","Kent State","Marshall","New Mexico","Idaho State","Minnesota State","BYU","NC State","Oregon State","Boston College","Navy","Louisiana Tech","North Texas","Washington State","Tulsa","Syracuse","Troy","Fresno State","Maryland"],
-  basketball:["North Carolina","Davidson","Indiana State","Michigan State","UCLA","Wake Forest","Texas","Arizona State","Washington State","Syracuse","Marquette","Georgetown","LSU","Auburn","Indiana","Kentucky","Duke","Oklahoma","San Diego State","Weber State","Fresno State","Navy","Kansas","Connecticut","Villanova","Arizona","Memphis","Gonzaga","Louisville","Florida","Michigan","Ohio State","Central Arkansas","Southeastern Oklahoma State","Virginia Union","Louisiana Tech","Santa Clara","UTEP","Colorado","UNLV","Houston","Oregon State","California","Minnesota","Georgia","St. John's","Murray State","Oklahoma State","Texas A&M"],
+  football:["Michigan","Tennessee","Texas Tech","California","Purdue","Ole Miss","Florida","Stanford","Clemson","Louisville","Oregon","Mississippi State","Penn State","Alabama","Oklahoma State","Southern Miss","Notre Dame","Pittsburgh","Florida State","Cincinnati","Arizona","Georgia Tech","Oklahoma","Miami (FL)","USC","Texas A&M","Wyoming","Jackson State","Mississippi Valley State","Buffalo","Central Michigan","Auburn","Ohio State","Georgia","LSU","Texas","Nebraska","Wisconsin","UCLA","Eastern Illinois","Northern Iowa","Alcorn State","Grambling State","Chattanooga","Savannah State","Texas Southern","Eastern Washington","North Dakota State","Miami (OH)","Kent State","Marshall","New Mexico","Idaho State","Minnesota State","BYU","NC State","Oregon State","Boston College","Navy","Louisiana Tech","North Texas","Washington State","Tulsa","Syracuse","Troy","Fresno State","Maryland","Florida Atlantic","East Carolina","Tulane","TCU","Michigan State","UTEP"],
+  basketball:["North Carolina","Davidson","Indiana State","Michigan State","UCLA","Wake Forest","Texas","Arizona State","Washington State","Syracuse","Marquette","Georgetown","LSU","Auburn","Indiana","Kentucky","Duke","Oklahoma","San Diego State","Weber State","Fresno State","Navy","Kansas","Connecticut","Villanova","Arizona","Memphis","Gonzaga","Louisville","Florida","Michigan","Ohio State","Central Arkansas","Southeastern Oklahoma State","Virginia Union","Louisiana Tech","Santa Clara","UTEP","Colorado","UNLV","Houston","Oregon State","California","Minnesota","Georgia","St. John's","Murray State","Oklahoma State","Texas A&M","Georgia Tech","USC","Washington","Butler","Lehigh"],
   baseball:["Arizona State","UCLA","Auburn","USC","Florida State","San Diego State","San Diego","Tennessee","Stanford","Vanderbilt","LSU","Texas","Miami (FL)","Florida","Cal State Fullerton","Oregon State","Mississippi State","Arkansas","North Carolina","Fresno State","Missouri","Old Dominion","Arizona"],
   hockey:["Boston University","Boston College","Michigan","Minnesota","North Dakota","Wisconsin","Denver","Minnesota Duluth","Maine","Notre Dame","Michigan State","Harvard"],
   soccer:["North Carolina","Florida","California","Portland","Furman","UCLA","Virginia","Rutgers","Stanford","Indiana","Maryland","Wake Forest","Clemson","Akron"],
@@ -683,6 +794,10 @@ const SCHOOLS = {
   "Troy":["TROY","#8A2432","#C7C9C7"], "St. John's":["SJU","#BA0C2F","#FFFFFF"],
   "Murray State":["MURR","#002144","#F1B82D"], "Missouri":["MIZ","#000000","#F1B82D"],
   "Old Dominion":["ODU","#003057","#A2AAAD"], "Coastal Carolina":["CCU","#006F71","#A27752"],
+  "Florida Atlantic":["FAU","#003366","#FFFFFF"], "East Carolina":["ECU","#592A8A","#FDC82F"],
+  "Tulane":["TUL","#005440","#6CB4E4"], "TCU":["TCU","#4D1979","#FFFFFF"],
+  "Washington":["UW","#4B2E83","#B7A57A"], "Butler":["BUT","#13294B","#FFFFFF"],
+  "Lehigh":["LEH","#623412","#FFFFFF"],
 };
 
 const SPORT_META = {
@@ -959,8 +1074,58 @@ function showResults(){
         <div class="ans"><div class="right">${m.correct}</div><div class="gave">you said: ${m.gave}</div></div>
       </div>`).join("");
   }
-  $("againBtn").focus();
+  lbShow();
+  if(!lbEnabled() || score<=0) $("againBtn").focus();
 }
+
+/* ---------- leaderboard ---------- */
+const LB = LEADERBOARD_API.replace(/\/+$/,"");
+function lbEnabled(){ return LB.length > 0; }
+async function lbFetchTop(){
+  const r = await fetch(`${LB}/top?league=${league}&division=${diff}&limit=15`);
+  if(!r.ok) throw new Error("http");
+  return (await r.json()).top || [];
+}
+async function lbPost(initials){
+  const r = await fetch(`${LB}/score`, { method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ initials, score, league, division: diff }) });
+  if(!r.ok) throw new Error("http");
+  return r.json();
+}
+function lbMessage(msg){ $("lbBoard").innerHTML = `<div class="lb-title">Leaderboard</div><div class="lb-msg">${msg}</div>`; }
+function renderBoard(top, mine){
+  const head = `<div class="lb-title">Leaderboard \u2014 ${comboLabel()}</div>`;
+  if(!top || !top.length){ $("lbBoard").innerHTML = head + `<div class="lb-empty">No scores yet \u2014 be the first.</div>`; return; }
+  const rows = top.map((e,i)=>{
+    const isMe = mine && e.initials===mine.initials && e.score===mine.score && (i+1)===mine.rank;
+    return `<div class="lb-row${isMe?" me":""}"><span class="rk">${i+1}</span><span class="ini">${e.initials}</span><span class="sc">${e.score}</span></div>`;
+  }).join("");
+  $("lbBoard").innerHTML = head + rows;
+}
+async function lbShow(){
+  if(!lbEnabled()){ $("lbWrap").classList.add("hidden"); return; }
+  $("lbWrap").classList.remove("hidden");
+  const entry = $("lbEntry");
+  if(score > 0){ entry.classList.remove("hidden"); $("lbInitials").value=""; $("lbSubmit").disabled=false; $("lbInitials").focus(); }
+  else entry.classList.add("hidden");
+  lbMessage("Loading\u2026");
+  try{ renderBoard(await lbFetchTop(), null); }
+  catch(e){ lbMessage("Leaderboard offline."); }
+}
+async function lbSubmitNow(){
+  const ini = ($("lbInitials").value||"").toUpperCase().replace(/[^A-Z]/g,"").slice(0,3);
+  if(ini.length < 1){ $("lbInitials").focus(); return; }
+  $("lbSubmit").disabled = true;
+  lbMessage("Saving\u2026");
+  try{
+    const res = await lbPost(ini);
+    $("lbEntry").classList.add("hidden");
+    renderBoard(res.top || [], { initials: ini, score, rank: res.rank });
+  }catch(e){ lbMessage("Couldn\u2019t save \u2014 try again later."); $("lbSubmit").disabled = false; }
+}
+$("lbSubmit").addEventListener("click", lbSubmitNow);
+$("lbInitials").addEventListener("input", function(){ this.value = this.value.toUpperCase().replace(/[^A-Z]/g,"").slice(0,3); });
+$("lbInitials").addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); lbSubmitNow(); } });
 
 /* ---------- keyboard ---------- */
 document.addEventListener("keydown", e=>{
@@ -979,7 +1144,7 @@ document.addEventListener("keydown", e=>{
   if(!startScreen.classList.contains("hidden")){
     if(e.key==="Enter"){ e.preventDefault(); startRound(); }
   } else if(!resultsScreen.classList.contains("hidden")){
-    if(e.key==="Enter"){ e.preventDefault(); startRound(); }
+    if(e.key==="Enter" && (!document.activeElement || document.activeElement.id!=="lbInitials")){ e.preventDefault(); startRound(); }
   }
 });
 
