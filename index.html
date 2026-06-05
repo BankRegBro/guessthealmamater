@@ -146,7 +146,7 @@
   .opt:hover:not(:disabled){border-color:var(--cyan);transform:translate(-2px,-2px);
     box-shadow:5px 5px 0 var(--ink);text-shadow:0 0 8px rgba(25,224,255,.7)}
   .opt:disabled{cursor:default}
-  .opt.correct{background:rgba(57,255,106,.18);border-color:var(--green);box-shadow:3px 3px 0 var(--ink),0 0 16px rgba(57,255,106,.6)}
+  .opt.correct{background:rgba(57,255,106,.30);border-color:var(--green);box-shadow:3px 3px 0 var(--ink),0 0 18px rgba(57,255,106,.7)}
   .opt.correct .keycap{border-color:var(--green);color:var(--green)}
   .opt.wrong{background:rgba(255,59,70,.18);border-color:var(--red);box-shadow:3px 3px 0 var(--ink),0 0 16px rgba(255,59,70,.55)}
   .opt.wrong .keycap{border-color:var(--red);color:var(--red)}
@@ -206,18 +206,21 @@
   .opt:focus-visible,.seg button:focus-visible,.arcade-btn:focus-visible,.next-btn:focus-visible,
   .viewtoggle button:focus-visible,.linkbtn:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
 
-  /* ---------- Forced mobile preview ---------- */
-  body.mobileview{padding-top:48px}
-  body.mobileview .wrap{max-width:392px;background:#05050d;border:12px solid #05050d;border-radius:38px;
-    padding:18px 12px 24px;position:relative;
-    box-shadow:0 0 0 2px #2a2c66,0 0 26px rgba(25,224,255,.18),0 30px 60px -22px #000}
-  body.mobileview .wrap::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);
-    width:120px;height:18px;background:#05050d;border-radius:0 0 14px 14px;z-index:6}
+  /* ---------- Mobile view (default) ---------- */
+  body.mobileview{padding-top:54px}
   body.mobileview .options{grid-template-columns:1fr}
   body.mobileview .seg{grid-template-columns:1fr}
   body.mobileview .title{font-size:3.2rem}
   body.mobileview .athlete{font-size:2rem}
   body.mobileview .opt{padding:15px 14px}
+  /* Phone-frame bezel only as a desktop preview; real phones render full-width */
+  @media (min-width:600px){
+    body.mobileview .wrap{max-width:392px;background:#05050d;border:12px solid #05050d;border-radius:38px;
+      padding:18px 12px 24px;position:relative;
+      box-shadow:0 0 0 2px #2a2c66,0 0 26px rgba(25,224,255,.18),0 30px 60px -22px #000}
+    body.mobileview .wrap::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);
+      width:120px;height:18px;background:#05050d;border-radius:0 0 14px 14px;z-index:6}
+  }
 
   /* ---------- Real small screens ---------- */
   @media(max-width:540px){.options{grid-template-columns:1fr}.seg{grid-template-columns:1fr}}
@@ -233,11 +236,11 @@
   .hidden{display:none}
 </style>
 </head>
-<body>
+<body class="mobileview">
 
 <div class="viewtoggle" id="viewToggle" role="group" aria-label="Layout view">
-  <button data-view="desktop" class="on">Desktop</button>
-  <button data-view="mobile">Mobile</button>
+  <button data-view="desktop">Desktop</button>
+  <button data-view="mobile" class="on">Mobile</button>
 </div>
 
 <div class="wrap">
@@ -260,12 +263,12 @@
     <div class="seg" id="diffSeg">
       <button data-diff="mainstream" class="on">ROOKIE<small>Big names only</small></button>
       <button data-diff="mixed">PRO<small>Everybody in</small></button>
-      <button data-diff="deepcut">ALL-MADDEN<small>Deep cuts</small></button>
+      <button data-diff="deepcut">ALL-PRO<small>Deep cuts</small></button>
     </div>
     <button class="arcade-btn" id="startBtn">PRESS START</button>
     <div id="bestNote"></div>
     <div class="fineprint" id="poolNote"></div>
-    <div class="fineprint">Tip: use keys <b>A&ndash;H</b> or <b>1&ndash;8</b> to answer, <b>Enter</b> to advance.</div>
+    <div class="fineprint">Tip: use keys <b>A&ndash;F</b> or <b>1&ndash;6</b> to answer, <b>Enter</b> to advance.</div>
   </section>
 
   <!-- QUIZ -->
@@ -544,16 +547,78 @@ const ATHLETES = [
   {n:"Scottie Scheffler", s:"golf", c:"Texas",                   t:"main"},
   {n:"Patrick Cantlay",   s:"golf", c:"UCLA",                    t:"deep"},
   {n:"Max Homa",          s:"golf", c:"California",               t:"deep"},
+
+  // ---- EXPANSION 2: FOOTBALL ----
+  {n:"Joe Namath",        s:"football", c:"Alabama",            t:"main"},
+  {n:"Roger Staubach",    s:"football", c:"Navy",               t:"main"},
+  {n:"Bart Starr",        s:"football", c:"Alabama",            t:"main"},
+  {n:"Earl Campbell",     s:"football", c:"Texas",              t:"main"},
+  {n:"Marcus Allen",      s:"football", c:"USC",                t:"main"},
+  {n:"Tony Gonzalez",     s:"football", c:"California",         t:"main"},
+  {n:"Warrick Dunn",      s:"football", c:"Florida State",      t:"main"},
+  {n:"Terry Bradshaw",    s:"football", c:"Louisiana Tech",     t:"deep"},
+  {n:"Joe Greene",        s:"football", c:"North Texas",        t:"deep"},
+  {n:"Drew Bledsoe",      s:"football", c:"Washington State",   t:"deep"},
+  {n:"Steve Largent",     s:"football", c:"Tulsa",              t:"deep"},
+  {n:"Donovan McNabb",    s:"football", c:"Syracuse",           t:"deep"},
+  {n:"DeMarcus Ware",     s:"football", c:"Troy",               t:"deep"},
+  {n:"Patrick Willis",    s:"football", c:"Ole Miss",           t:"deep"},
+  {n:"Davante Adams",     s:"football", c:"Fresno State",       t:"deep"},
+  {n:"Stefon Diggs",      s:"football", c:"Maryland",           t:"deep"},
+
+  // ---- EXPANSION 2: BASKETBALL ----
+  {n:"James Worthy",      s:"basketball", c:"North Carolina",   t:"main"},
+  {n:"Shai Gilgeous-Alexander", s:"basketball", c:"Kentucky",   t:"main"},
+  {n:"Trae Young",        s:"basketball", c:"Oklahoma",         t:"main"},
+  {n:"Devin Booker",      s:"basketball", c:"Kentucky",         t:"main"},
+  {n:"Kevin McHale",      s:"basketball", c:"Minnesota",        t:"deep"},
+  {n:"Clyde Drexler",     s:"basketball", c:"Houston",          t:"deep"},
+  {n:"Dominique Wilkins", s:"basketball", c:"Georgia",          t:"deep"},
+  {n:"Chris Mullin",      s:"basketball", c:"St. John's",       t:"deep"},
+  {n:"Kemba Walker",      s:"basketball", c:"Connecticut",      t:"deep"},
+  {n:"Anthony Edwards",   s:"basketball", c:"Georgia",          t:"deep"},
+  {n:"Ja Morant",         s:"basketball", c:"Murray State",     t:"deep"},
+  {n:"Cade Cunningham",   s:"basketball", c:"Oklahoma State",   t:"deep"},
+  {n:"Jimmy Butler",      s:"basketball", c:"Marquette",        t:"deep"},
+  {n:"Khris Middleton",   s:"basketball", c:"Texas A&M",        t:"deep"},
+  {n:"Jrue Holiday",      s:"basketball", c:"UCLA",             t:"deep"},
+
+  // ---- EXPANSION 2: BASEBALL ----
+  {n:"Aaron Judge",       s:"baseball", c:"Fresno State",       t:"deep"},
+  {n:"Pete Alonso",       s:"baseball", c:"Florida",            t:"deep"},
+  {n:"Max Scherzer",      s:"baseball", c:"Missouri",           t:"deep"},
+  {n:"Justin Verlander",  s:"baseball", c:"Old Dominion",       t:"deep"},
+  {n:"Trevor Hoffman",    s:"baseball", c:"Arizona",            t:"deep"},
+  {n:"Nolan Arenado",     s:"baseball", c:NONE,                 t:"deep"},
+  {n:"Nolan Ryan",        s:"baseball", c:NONE,                 t:"deep"},
+  {n:"Cal Ripken Jr.",    s:"baseball", c:NONE,                 t:"deep"},
+
+  // ---- EXPANSION 2: HOCKEY ----
+  {n:"Chris Chelios",     s:"hockey", c:"Wisconsin",            t:"deep"},
+  {n:"Jack Hughes",       s:"hockey", c:NONE,                   t:"deep"},
+
+  // ---- EXPANSION 2: SOCCER ----
+  {n:"Tobin Heath",       s:"soccer", c:"North Carolina",       t:"deep"},
+  {n:"Carli Lloyd",       s:"soccer", c:"Rutgers",              t:"deep"},
+
+  // ---- EXPANSION 2: TENNIS ----
+  {n:"Danielle Collins",  s:"tennis", c:"Virginia",             t:"deep"},
+  {n:"Coco Gauff",        s:"tennis", c:NONE,                   t:"deep"},
+
+  // ---- EXPANSION 2: GOLF ----
+  {n:"Brooks Koepka",     s:"golf", c:"Florida State",          t:"main"},
+  {n:"Dustin Johnson",    s:"golf", c:"Coastal Carolina",       t:"deep"},
+  {n:"Justin Rose",       s:"golf", c:NONE,                     t:"deep"},
 ];
 
 const POOLS = {
-  football:["Michigan","Tennessee","Texas Tech","California","Purdue","Ole Miss","Florida","Stanford","Clemson","Louisville","Oregon","Mississippi State","Penn State","Alabama","Oklahoma State","Southern Miss","Notre Dame","Pittsburgh","Florida State","Cincinnati","Arizona","Georgia Tech","Oklahoma","Miami (FL)","USC","Texas A&M","Wyoming","Jackson State","Mississippi Valley State","Buffalo","Central Michigan","Auburn","Ohio State","Georgia","LSU","Texas","Nebraska","Wisconsin","UCLA","Eastern Illinois","Northern Iowa","Alcorn State","Grambling State","Chattanooga","Savannah State","Texas Southern","Eastern Washington","North Dakota State","Miami (OH)","Kent State","Marshall","New Mexico","Idaho State","Minnesota State","BYU","NC State","Oregon State","Boston College"],
-  basketball:["North Carolina","Davidson","Indiana State","Michigan State","UCLA","Wake Forest","Texas","Arizona State","Washington State","Syracuse","Marquette","Georgetown","LSU","Auburn","Indiana","Kentucky","Duke","Oklahoma","San Diego State","Weber State","Fresno State","Navy","Kansas","Connecticut","Villanova","Arizona","Memphis","Gonzaga","Louisville","Florida","Michigan","Ohio State","Central Arkansas","Southeastern Oklahoma State","Virginia Union","Louisiana Tech","Santa Clara","UTEP","Colorado","UNLV","Houston","Oregon State","California"],
-  baseball:["Arizona State","UCLA","Auburn","USC","Florida State","San Diego State","San Diego","Tennessee","Stanford","Vanderbilt","LSU","Texas","Miami (FL)","Florida","Cal State Fullerton","Oregon State","Mississippi State","Arkansas","North Carolina"],
+  football:["Michigan","Tennessee","Texas Tech","California","Purdue","Ole Miss","Florida","Stanford","Clemson","Louisville","Oregon","Mississippi State","Penn State","Alabama","Oklahoma State","Southern Miss","Notre Dame","Pittsburgh","Florida State","Cincinnati","Arizona","Georgia Tech","Oklahoma","Miami (FL)","USC","Texas A&M","Wyoming","Jackson State","Mississippi Valley State","Buffalo","Central Michigan","Auburn","Ohio State","Georgia","LSU","Texas","Nebraska","Wisconsin","UCLA","Eastern Illinois","Northern Iowa","Alcorn State","Grambling State","Chattanooga","Savannah State","Texas Southern","Eastern Washington","North Dakota State","Miami (OH)","Kent State","Marshall","New Mexico","Idaho State","Minnesota State","BYU","NC State","Oregon State","Boston College","Navy","Louisiana Tech","North Texas","Washington State","Tulsa","Syracuse","Troy","Fresno State","Maryland"],
+  basketball:["North Carolina","Davidson","Indiana State","Michigan State","UCLA","Wake Forest","Texas","Arizona State","Washington State","Syracuse","Marquette","Georgetown","LSU","Auburn","Indiana","Kentucky","Duke","Oklahoma","San Diego State","Weber State","Fresno State","Navy","Kansas","Connecticut","Villanova","Arizona","Memphis","Gonzaga","Louisville","Florida","Michigan","Ohio State","Central Arkansas","Southeastern Oklahoma State","Virginia Union","Louisiana Tech","Santa Clara","UTEP","Colorado","UNLV","Houston","Oregon State","California","Minnesota","Georgia","St. John's","Murray State","Oklahoma State","Texas A&M"],
+  baseball:["Arizona State","UCLA","Auburn","USC","Florida State","San Diego State","San Diego","Tennessee","Stanford","Vanderbilt","LSU","Texas","Miami (FL)","Florida","Cal State Fullerton","Oregon State","Mississippi State","Arkansas","North Carolina","Fresno State","Missouri","Old Dominion","Arizona"],
   hockey:["Boston University","Boston College","Michigan","Minnesota","North Dakota","Wisconsin","Denver","Minnesota Duluth","Maine","Notre Dame","Michigan State","Harvard"],
   soccer:["North Carolina","Florida","California","Portland","Furman","UCLA","Virginia","Rutgers","Stanford","Indiana","Maryland","Wake Forest","Clemson","Akron"],
   tennis:["Georgia","Harvard","Stanford","USC","UCLA","Virginia","Florida","Illinois","Ohio State","Texas","Vanderbilt","Baylor"],
-  golf:["Stanford","Arizona State","Texas","SMU","Oklahoma State","Alabama","California","USC","Georgia","Oklahoma","Florida State","LSU","Wake Forest","Illinois","UCLA"],
+  golf:["Stanford","Arizona State","Texas","SMU","Oklahoma State","Alabama","California","USC","Georgia","Oklahoma","Florida State","LSU","Wake Forest","Illinois","UCLA","Coastal Carolina"],
 };
 
 /* School crest: name -> [abbreviation, primaryColor(bg), secondaryColor(text/border)].
@@ -614,6 +679,10 @@ const SCHOOLS = {
   "Louisiana Tech":["LATC","#002F8B","#E31B23"], "Santa Clara":["SCU","#862633","#B5A36A"],
   "UTEP":["UTEP","#FF8200","#041E42"], "Colorado":["COLO","#000000","#CFB87C"],
   "UNLV":["UNLV","#CF0A2C","#888888"], "Houston":["HOU","#C8102E","#FFFFFF"],
+  "North Texas":["UNT","#00853E","#FFFFFF"], "Tulsa":["TLSA","#002D72","#C5B783"],
+  "Troy":["TROY","#8A2432","#C7C9C7"], "St. John's":["SJU","#BA0C2F","#FFFFFF"],
+  "Murray State":["MURR","#002144","#F1B82D"], "Missouri":["MIZ","#000000","#F1B82D"],
+  "Old Dominion":["ODU","#003057","#A2AAAD"], "Coastal Carolina":["CCU","#006F71","#A27752"],
 };
 
 const SPORT_META = {
@@ -631,8 +700,9 @@ const LEAGUE_BY_SPORT = {
   soccer:"USMNT", tennis:"ATP", golf:"PGA Tour"
 };
 const LEAGUE_OVERRIDE = {
-  "Serena Williams":"WTA",
-  "Mia Hamm":"USWNT", "Abby Wambach":"USWNT", "Alex Morgan":"USWNT", "Megan Rapinoe":"USWNT"
+  "Serena Williams":"WTA", "Danielle Collins":"WTA", "Coco Gauff":"WTA",
+  "Mia Hamm":"USWNT", "Abby Wambach":"USWNT", "Alex Morgan":"USWNT", "Megan Rapinoe":"USWNT",
+  "Tobin Heath":"USWNT", "Carli Lloyd":"USWNT"
 };
 function leagueFor(ath){ return LEAGUE_OVERRIDE[ath.n] || LEAGUE_BY_SPORT[ath.s]; }
 
@@ -640,7 +710,7 @@ const CORRECT_WORDS = ["BOOM!","TOUCHDOWN!","SWEET!","NICE!","CASH!","BANG!"];
 const WRONG_WORDS   = ["FUMBLE!","INTERCEPTED!","SACKED!","NO GOOD!","BRICK!"];
 
 const QUESTIONS_PER_ROUND = 20;
-const LETTERS = ["A","B","C","D","E","F","G","H"];
+const LETTERS = ["A","B","C","D","E","F"];
 
 /* ---------- helpers ---------- */
 function shuffle(arr){
@@ -651,12 +721,24 @@ function shuffle(arr){
 function sample(arr,k){ return shuffle(arr).slice(0,k); }
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
-function buildOptions(ath){
+function buildOptions(ath, recent){
   const correct = ath.c;
-  const pool = POOLS[ath.s].filter(c => c !== correct);
-  let distractors;
-  if(correct === NONE){ distractors = sample(pool, 7); }
-  else { distractors = (Math.random() < 0.45) ? [...sample(pool, 6), NONE] : sample(pool, 7); }
+  const candidates = POOLS[ath.s].filter(c => c !== correct);
+  const need = 5;
+  // Only offer "No U.S. college" as a decoy sometimes, and not if it was just shown
+  const useNone = (correct !== NONE) && !recent.includes(NONE) && (Math.random() < 0.4);
+  const schoolsNeeded = useNone ? need - 1 : need;
+  // Prefer schools not shown recently; fall back to the rest if a pool is small
+  const fresh = candidates.filter(c => !recent.includes(c));
+  const stale = candidates.filter(c => recent.includes(c));
+  let picks = sample(fresh, Math.min(schoolsNeeded, fresh.length));
+  if(picks.length < schoolsNeeded) picks = picks.concat(sample(stale, schoolsNeeded - picks.length));
+  const distractors = useNone ? [...picks, NONE] : picks;
+  // Record what was shown so it cools down for the next few questions
+  picks.forEach(s => recent.push(s));
+  if(correct === NONE || useNone) recent.push(NONE);
+  if(correct !== NONE) recent.push(correct);
+  while(recent.length > 22) recent.shift();
   return shuffle([correct, ...distractors]);
 }
 
@@ -684,7 +766,7 @@ function currentPool(){
   return pool;
 }
 function roundLen(){ return Math.min(QUESTIONS_PER_ROUND, currentPool().length); }
-function diffLabel(){ return diff==="mainstream" ? "ROOKIE" : diff==="deepcut" ? "ALL-MADDEN" : "PRO"; }
+function diffLabel(){ return diff==="mainstream" ? "ROOKIE" : diff==="deepcut" ? "ALL-PRO" : "PRO"; }
 function comboLabel(){ return (league==="all" ? "" : league.toUpperCase()+" \u00b7 ") + diffLabel(); }
 function updatePoolNote(){ $("poolNote").textContent = `${currentPool().length} athletes loaded \u00b7 ${roundLen()} per game`; }
 function updateBest(){
@@ -733,7 +815,8 @@ $("changeDivBtn").addEventListener("click", ()=>{
 
 function startRound(){
   const pool = currentPool();
-  round = sample(pool, Math.min(QUESTIONS_PER_ROUND, pool.length)).map(a=>({ ath:a, options:buildOptions(a) }));
+  const recent = [];
+  round = sample(pool, Math.min(QUESTIONS_PER_ROUND, pool.length)).map(a=>({ ath:a, options:buildOptions(a, recent) }));
   $("qTot").textContent = round.length;
   idx = 0; score = 0; streak = 0; misses = [];
   document.body.classList.remove("onfire");
@@ -790,7 +873,7 @@ function choose(btn, opt, q){
   const correct = q.ath.c;
   [...$("options").querySelectorAll(".opt")].forEach(b=>{
     b.disabled = true;
-    const label = b.querySelector("span:last-child").textContent;
+    const label = b.querySelector(".opt-name").textContent;
     if(label === correct) b.classList.add("correct");
     else if(b === btn) b.classList.add("wrong");
     else b.classList.add("dim");
@@ -853,7 +936,7 @@ function showResults(){
   const v = $("finalVerdict");
   if(pct===100) v.textContent="PERFECT GAME \u2014 HALL OF FAME";
   else if(pct>=80) v.textContent="M V P";
-  else if(pct>=60) v.textContent="ALL-PRO";
+  else if(pct>=60) v.textContent="ALL-STAR";
   else if(pct>=40) v.textContent="ROLE PLAYER";
   else v.textContent="PRACTICE SQUAD";
 
@@ -885,8 +968,8 @@ document.addEventListener("keydown", e=>{
     const k = e.key.toLowerCase();
     if(!answered){
       let i = -1;
-      if(k>='1' && k<='8') i = (+k) - 1;
-      else if(k>='a' && k<='h') i = k.charCodeAt(0) - 97;
+      if(k>='1' && k<='6') i = (+k) - 1;
+      else if(k>='a' && k<='f') i = k.charCodeAt(0) - 97;
       if(i>=0){ const btns=$("options").children; if(btns[i]){ e.preventDefault(); btns[i].click(); } }
     } else if(e.key==="Enter" || e.key===" " || k==="n" || e.key==="ArrowRight"){
       e.preventDefault(); advance();
@@ -913,7 +996,7 @@ document.addEventListener("keydown", e=>{
     $("leagueSeg").querySelectorAll("button").forEach(b=>b.classList.toggle("on", b.dataset.league===league));
   }
   let sv; try{ sv = localStorage.getItem('rollcall_view'); }catch(e){}
-  if(sv==="mobile") setView("mobile");
+  setView(sv === "desktop" ? "desktop" : "mobile");
   updatePoolNote(); updateBest();
 })();
 </script>
