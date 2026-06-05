@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROLL CALL &mdash; Guess the Alma Mater</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Press+Start+2P&family=Russo+One&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a16; --bg-2:#11112a; --panel:#15163a; --panel-2:#1c1d4a;
+    --cyan:#19e0ff; --magenta:#ff2e9a; --yellow:#ffd400; --orange:#ff7b1a;
+    --green:#39ff6a; --red:#ff3b46; --ink:#0a0a16; --txt:#eaf6ff; --muted:#9a9ddb;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Russo One',sans-serif;color:var(--txt);
+    background:radial-gradient(120% 90% at 50% -10%, #1a1b4d 0%, var(--bg) 62%),var(--bg);
+    min-height:100vh;display:flex;align-items:flex-start;justify-content:center;
+    padding:26px 14px 70px;position:relative;overflow-x:hidden;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+    background-image:linear-gradient(rgba(25,224,255,.10) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,46,154,.08) 1px, transparent 1px);
+    background-size:42px 42px,42px 42px;
+    -webkit-mask-image:radial-gradient(120% 80% at 50% 30%, #000 30%, transparent 85%);
+            mask-image:radial-gradient(120% 80% at 50% 30%, #000 30%, transparent 85%);
+  }
+  body::after{
+    content:"";position:fixed;inset:0;z-index:50;pointer-events:none;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px),
+      radial-gradient(120% 100% at 50% 50%, transparent 60%, rgba(0,0,0,.55) 100%);
+  }
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+    clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  .wrap{width:100%;max-width:720px;position:relative;z-index:1}
+
+  /* ---------- View toggle ---------- */
+  .viewtoggle{position:fixed;top:12px;right:12px;z-index:100;display:flex;
+    background:var(--ink);border:2px solid var(--cyan);border-radius:7px;overflow:hidden;
+    box-shadow:0 0 12px rgba(25,224,255,.4)}
+  .viewtoggle button{font-family:'Russo One',sans-serif;font-size:.8rem;letter-spacing:.04em;
+    text-transform:uppercase;color:var(--cyan);background:transparent;border:none;
+    padding:8px 13px;cursor:pointer}
+  .viewtoggle button.on{background:var(--cyan);color:var(--ink)}
+
+  /* ---------- Masthead ---------- */
+  .masthead{text-align:center;margin-bottom:18px}
+  .coin{font-family:'Press Start 2P',monospace;font-size:.72rem;letter-spacing:.12em;
+    color:var(--cyan);margin-bottom:14px;animation:blink 1.1s steps(1) infinite;
+    text-shadow:0 0 8px rgba(25,224,255,.8)}
+  @keyframes blink{50%{opacity:.15}}
+  .title{font-family:'Anton',sans-serif;font-size:clamp(3.2rem,13vw,6rem);line-height:.82;
+    letter-spacing:.01em;color:var(--yellow);transform:skewX(-7deg);display:inline-block;
+    text-shadow:3px 3px 0 var(--magenta),5px 5px 0 var(--magenta),7px 7px 0 #7a0048,9px 9px 0 #7a0048,0 0 26px rgba(25,224,255,.55)}
+  .tagline{font-family:'Press Start 2P',monospace;font-size:.72rem;letter-spacing:.16em;
+    color:var(--magenta);margin-top:16px;text-shadow:0 0 10px rgba(255,46,154,.6)}
+
+  /* ---------- Cabinet / card ---------- */
+  .card{background:linear-gradient(180deg,var(--panel),var(--bg-2));
+    border:3px solid var(--cyan);border-radius:8px;padding:26px 22px 24px;position:relative;
+    box-shadow:0 0 0 3px var(--ink),0 0 22px rgba(25,224,255,.35),0 24px 50px -26px #000}
+  .hdr{font-family:'Press Start 2P',monospace;font-size:.78rem;letter-spacing:.12em;
+    color:var(--yellow);text-align:center;margin-bottom:18px;text-shadow:0 0 8px rgba(255,212,0,.5)}
+
+  /* ---------- Difficulty ---------- */
+  .seg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:20px}
+  .seg button{font-family:'Anton',sans-serif;font-size:1.18rem;letter-spacing:.02em;
+    color:var(--cyan);background:var(--panel-2);border:2px solid var(--cyan);border-radius:5px;
+    padding:14px 6px 12px;cursor:pointer;transition:.12s;line-height:1;
+    box-shadow:4px 4px 0 var(--ink);text-transform:uppercase}
+  .seg button small{display:block;font-family:'Russo One',sans-serif;font-size:.7rem;
+    line-height:1.3;color:var(--muted);margin-top:9px;letter-spacing:.02em;text-transform:none}
+  .seg button:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--ink);
+    text-shadow:0 0 10px rgba(25,224,255,.8)}
+  .seg button.on{background:var(--cyan);color:var(--ink);border-color:var(--cyan);box-shadow:4px 4px 0 var(--magenta)}
+  .seg button.on small{color:#08384a}
+
+  .arcade-btn{width:100%;font-family:'Anton',sans-serif;font-size:1.9rem;letter-spacing:.05em;
+    color:var(--ink);background:var(--yellow);border:none;border-radius:6px;padding:15px;cursor:pointer;
+    text-transform:uppercase;transition:.1s;
+    box-shadow:0 0 0 3px var(--ink),0 6px 0 var(--orange),0 0 22px rgba(255,212,0,.5)}
+  .arcade-btn:hover{filter:brightness(1.05)}
+  .arcade-btn:active{transform:translateY(4px);box-shadow:0 0 0 3px var(--ink),0 2px 0 var(--orange)}
+
+  #bestNote{text-align:center;font-family:'Press Start 2P',monospace;font-size:.66rem;
+    color:var(--yellow);letter-spacing:.05em;margin-top:16px;text-shadow:0 0 8px rgba(255,212,0,.4);line-height:1.6}
+  .fineprint{text-align:center;color:var(--muted);font-family:'Russo One',sans-serif;
+    font-size:.82rem;letter-spacing:.03em;margin-top:12px;line-height:1.7}
+  .fineprint b{color:var(--cyan);font-weight:400}
+
+  /* ---------- HUD ---------- */
+  .hud{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;position:relative}
+  .stat{background:var(--ink);border:2px solid var(--panel-2);border-radius:5px;padding:9px 6px;text-align:center}
+  .stat .lab{font-family:'Press Start 2P',monospace;font-size:.6rem;letter-spacing:.06em;color:var(--muted)}
+  .stat .val{font-family:'Press Start 2P',monospace;font-size:1.05rem;margin-top:9px;color:var(--txt)}
+  .stat.score .val{color:var(--cyan);text-shadow:0 0 8px rgba(25,224,255,.7)}
+  .stat.streak .val{color:var(--muted)}
+  body.onfire .stat.streak{border-color:var(--orange);animation:firepulse .5s infinite alternate}
+  body.onfire .stat.streak .val{color:var(--orange)}
+  body.onfire .stat.streak .lab{color:var(--yellow)}
+  @keyframes firepulse{from{box-shadow:0 0 4px rgba(255,123,26,.4)}to{box-shadow:0 0 16px rgba(255,123,26,.95)}}
+  .fire-tag{position:absolute;top:-15px;left:50%;transform:translateX(-50%);
+    font-family:'Anton',sans-serif;font-size:.85rem;letter-spacing:.12em;color:var(--ink);
+    background:linear-gradient(180deg,var(--yellow),var(--orange));padding:2px 12px;border-radius:4px;
+    box-shadow:0 0 14px rgba(255,123,26,.9);opacity:0;transition:.18s;text-transform:uppercase;z-index:5}
+  body.onfire .fire-tag{opacity:1}
+
+  .meter{height:12px;background:var(--ink);border:2px solid var(--panel-2);border-radius:4px;
+    overflow:hidden;margin-bottom:20px;position:relative}
+  .meter > i{position:absolute;inset:0;width:0;transition:width .35s ease;
+    background:linear-gradient(90deg,var(--cyan),var(--magenta));
+    -webkit-mask-image:repeating-linear-gradient(90deg,#000 0 7px,transparent 7px 9px);
+            mask-image:repeating-linear-gradient(90deg,#000 0 7px,transparent 7px 9px)}
+
+  /* ---------- Prompt ---------- */
+  .prompt{text-align:center;margin-bottom:18px}
+  .badges{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+  .chip{font-family:'Press Start 2P',monospace;font-size:.62rem;letter-spacing:.06em;
+    color:var(--ink);padding:8px 13px;border-radius:4px;box-shadow:0 0 0 2px var(--ink),3px 3px 0 var(--ink)}
+  .chip-lg{font-family:'Press Start 2P',monospace;font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;
+    background:var(--ink);padding:8px 12px;border-radius:4px;border:2px solid var(--cyan);
+    color:var(--cyan);box-shadow:3px 3px 0 var(--ink)}
+  .ask{font-family:'Russo One',sans-serif;font-size:.92rem;letter-spacing:.03em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:12px}
+  .athlete{font-family:'Anton',sans-serif;font-size:clamp(2.2rem,8.5vw,3.5rem);line-height:1.04;
+    letter-spacing:.02em;text-transform:uppercase;color:#fff;
+    text-shadow:0 3px 0 #07071c,0 0 2px #07071c,0 0 16px rgba(25,224,255,.38)}
+
+  .options{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .opt{font-family:'Russo One',sans-serif;font-size:.96rem;text-align:left;color:var(--txt);
+    background:var(--panel-2);border:2px solid #3a3c84;border-radius:5px;padding:13px 13px;cursor:pointer;
+    transition:.1s;display:flex;align-items:center;gap:11px;box-shadow:3px 3px 0 var(--ink);
+    opacity:0;transform:translateY(7px);animation:rise .3s forwards}
+  @keyframes rise{to{opacity:1;transform:none}}
+  .crest{font-family:'Anton',sans-serif;font-size:.76rem;letter-spacing:0;width:44px;height:44px;flex:none;
+    display:grid;place-items:center;border-radius:7px;border:2px solid;text-transform:uppercase;line-height:1;
+    overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+  .crest-none{background:#23254f;color:var(--muted);border-color:#3a3c84;font-size:1.1rem}
+  .opt-name{flex:1 1 auto;min-width:0}
+  .keycap{font-family:'Press Start 2P',monospace;font-size:.62rem;color:var(--muted);
+    border:1px solid #3a3c84;border-radius:4px;padding:5px 6px;flex:none}
+  .opt:hover:not(:disabled){border-color:var(--cyan);transform:translate(-2px,-2px);
+    box-shadow:5px 5px 0 var(--ink);text-shadow:0 0 8px rgba(25,224,255,.7)}
+  .opt:disabled{cursor:default}
+  .opt.correct{background:rgba(57,255,106,.18);border-color:var(--green);box-shadow:3px 3px 0 var(--ink),0 0 16px rgba(57,255,106,.6)}
+  .opt.correct .keycap{border-color:var(--green);color:var(--green)}
+  .opt.wrong{background:rgba(255,59,70,.18);border-color:var(--red);box-shadow:3px 3px 0 var(--ink),0 0 16px rgba(255,59,70,.55)}
+  .opt.wrong .keycap{border-color:var(--red);color:var(--red)}
+  .opt.dim{opacity:.4}
+
+  .next-row{margin-top:18px;min-height:54px;display:flex;align-items:center;justify-content:space-between;
+    gap:12px;flex-wrap:wrap}
+  .verdict{font-family:'Anton',sans-serif;font-size:1.5rem;letter-spacing:.04em;opacity:0;transition:.15s;
+    transform:skewX(-6deg);text-transform:uppercase;flex:1 1 auto;min-width:0}
+  .verdict.show{opacity:1;animation:pop .28s}
+  @keyframes pop{0%{transform:skewX(-6deg) scale(.6)}60%{transform:skewX(-6deg) scale(1.12)}100%{transform:skewX(-6deg) scale(1)}}
+  .verdict.hit{color:var(--green);text-shadow:0 0 14px rgba(57,255,106,.7)}
+  .verdict.miss{color:var(--red);text-shadow:0 0 14px rgba(255,59,70,.7)}
+  .next-btn{font-family:'Anton',sans-serif;font-size:1.3rem;letter-spacing:.04em;color:var(--ink);
+    background:var(--cyan);border:none;border-radius:5px;padding:10px 24px;cursor:pointer;text-transform:uppercase;
+    box-shadow:0 0 0 2px var(--ink),0 4px 0 #0e93ad;opacity:0;pointer-events:none;transition:.1s;flex:0 0 auto}
+  .next-btn.show{opacity:1;pointer-events:auto}
+  .next-btn:active{transform:translateY(3px);box-shadow:0 0 0 2px var(--ink),0 1px 0 #0e93ad}
+
+  .card.shake{animation:shake .35s}
+  @keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}
+    30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}
+  .card.flash{animation:flash .35s}
+  @keyframes flash{0%{box-shadow:0 0 0 3px var(--ink),0 0 22px rgba(25,224,255,.35)}
+    45%{box-shadow:0 0 0 3px var(--green),0 0 26px rgba(57,255,106,.45)}
+    100%{box-shadow:0 0 0 3px var(--ink),0 0 22px rgba(25,224,255,.35)}}
+
+  /* ---------- Results ---------- */
+  .final{text-align:center;padding:6px 0 2px}
+  .final .stars{font-family:'Press Start 2P',monospace;color:var(--yellow);font-size:.8rem;letter-spacing:.3em;margin-bottom:6px}
+  .grade{font-family:'Anton',sans-serif;font-size:clamp(3.8rem,16vw,6.4rem);line-height:.8;color:var(--yellow);
+    transform:skewX(-7deg);display:inline-block;text-shadow:3px 3px 0 var(--magenta),5px 5px 0 #7a0048,0 0 26px rgba(255,212,0,.5)}
+  .outof{font-family:'Anton',sans-serif;font-size:1.7rem;color:var(--muted);display:block;margin-top:6px}
+  .verdict-big{font-family:'Press Start 2P',monospace;font-size:.82rem;letter-spacing:.06em;margin-top:14px;
+    color:var(--cyan);text-shadow:0 0 12px rgba(25,224,255,.6);line-height:1.6}
+  .meta{font-family:'Press Start 2P',monospace;color:var(--muted);font-size:.62rem;letter-spacing:.05em;margin-top:12px}
+  #hiFlag{margin-top:12px}
+  .hi-flag{font-family:'Press Start 2P',monospace;font-size:.74rem;color:var(--yellow);letter-spacing:.08em;
+    text-shadow:0 0 12px rgba(255,212,0,.8);animation:blink 1s steps(1) infinite}
+  .best-line{font-family:'Press Start 2P',monospace;font-size:.62rem;color:var(--muted);letter-spacing:.05em}
+  .review{margin-top:22px}
+  .review h3{font-family:'Press Start 2P',monospace;font-size:.7rem;letter-spacing:.06em;color:var(--magenta);
+    margin-bottom:10px;border-top:2px solid #2a2c66;border-bottom:2px solid #2a2c66;padding:11px 0;text-align:center;line-height:1.6}
+  .miss-row{display:flex;justify-content:space-between;gap:14px;padding:10px 2px;border-bottom:1px solid #23254f;font-size:.94rem}
+  .miss-row:last-child{border-bottom:none}
+  .miss-row .who span{display:block;font-family:'Russo One',sans-serif;font-size:.72rem;color:var(--muted);margin-top:5px;letter-spacing:.03em}
+  .miss-row .ans{text-align:right;flex:none}
+  .miss-row .ans .right{color:var(--green);text-shadow:0 0 8px rgba(57,255,106,.5)}
+  .miss-row .ans .gave{color:var(--red);font-size:.78rem;margin-top:3px}
+  .allright{text-align:center;color:var(--green);padding:12px 0;text-shadow:0 0 10px rgba(57,255,106,.6)}
+  .again-btn{margin-top:22px}
+  .linkbtn{display:block;margin:14px auto 0;background:none;border:none;cursor:pointer;
+    font-family:'Russo One',sans-serif;font-size:.82rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+  .linkbtn:hover{color:var(--cyan)}
+
+  /* ---------- Focus states ---------- */
+  .opt:focus-visible,.seg button:focus-visible,.arcade-btn:focus-visible,.next-btn:focus-visible,
+  .viewtoggle button:focus-visible,.linkbtn:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+
+  /* ---------- Forced mobile preview ---------- */
+  body.mobileview{padding-top:48px}
+  body.mobileview .wrap{max-width:392px;background:#05050d;border:12px solid #05050d;border-radius:38px;
+    padding:18px 12px 24px;position:relative;
+    box-shadow:0 0 0 2px #2a2c66,0 0 26px rgba(25,224,255,.18),0 30px 60px -22px #000}
+  body.mobileview .wrap::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);
+    width:120px;height:18px;background:#05050d;border-radius:0 0 14px 14px;z-index:6}
+  body.mobileview .options{grid-template-columns:1fr}
+  body.mobileview .seg{grid-template-columns:1fr}
+  body.mobileview .title{font-size:3.2rem}
+  body.mobileview .athlete{font-size:2rem}
+  body.mobileview .opt{padding:15px 14px}
+
+  /* ---------- Real small screens ---------- */
+  @media(max-width:540px){.options{grid-template-columns:1fr}.seg{grid-template-columns:1fr}}
+
+  /* ---------- Reduced motion ---------- */
+  @media (prefers-reduced-motion: reduce){
+    .coin,.hi-flag{animation:none}
+    body.onfire .stat.streak{animation:none;box-shadow:0 0 12px rgba(255,123,26,.7)}
+    .card.shake,.card.flash{animation:none}
+    .verdict.show{animation:none}
+    .opt{opacity:1;transform:none;animation:none}
+  }
+  .hidden{display:none}
+</style>
+</head>
+<body>
+
+<div class="viewtoggle" id="viewToggle" role="group" aria-label="Layout view">
+  <button data-view="desktop" class="on">Desktop</button>
+  <button data-view="mobile">Mobile</button>
+</div>
+
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="coin">&#9656; INSERT COIN &#9666;</div>
+    <div class="title">ROLL CALL</div>
+    <div class="tagline">GUESS THE ALMA MATER</div>
+  </div>
+
+  <!-- START -->
+  <section id="startScreen" class="card">
+    <div class="hdr">LEAGUE</div>
+    <div class="seg" id="leagueSeg">
+      <button data-league="all" class="on">ALL<small>Every sport</small></button>
+      <button data-league="nfl">NFL<small>Football</small></button>
+      <button data-league="nba">NBA<small>Hoops</small></button>
+    </div>
+    <div class="hdr">SELECT DIFFICULTY</div>
+    <div class="seg" id="diffSeg">
+      <button data-diff="mainstream" class="on">ROOKIE<small>Big names only</small></button>
+      <button data-diff="mixed">PRO<small>Everybody in</small></button>
+      <button data-diff="deepcut">ALL-MADDEN<small>Deep cuts</small></button>
+    </div>
+    <button class="arcade-btn" id="startBtn">PRESS START</button>
+    <div id="bestNote"></div>
+    <div class="fineprint" id="poolNote"></div>
+    <div class="fineprint">Tip: use keys <b>A&ndash;H</b> or <b>1&ndash;8</b> to answer, <b>Enter</b> to advance.</div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quizScreen" class="card hidden">
+    <div class="hud">
+      <div class="fire-tag">&#9650; ON FIRE &#9650;</div>
+      <div class="stat"><div class="lab">PLAY</div><div class="val"><span id="qNum">1</span>/<span id="qTot">20</span></div></div>
+      <div class="stat score"><div class="lab">SCORE</div><div class="val" id="scoreVal">0</div></div>
+      <div class="stat streak"><div class="lab">STREAK</div><div class="val" id="streakVal">0</div></div>
+    </div>
+    <div class="meter"><i id="progFill"></i></div>
+
+    <div class="prompt">
+      <div class="badges">
+        <span class="chip" id="sportBadge">SPORT</span>
+        <span class="chip-lg" id="leagueBadge">LEAGUE</span>
+      </div>
+      <div class="ask">Where did they play college?</div>
+      <div class="athlete" id="athleteName">&mdash;</div>
+    </div>
+
+    <div class="options" id="options"></div>
+
+    <div class="next-row">
+      <div class="verdict" id="verdict" aria-hidden="true"></div>
+      <button class="next-btn" id="nextBtn">NEXT &rsaquo;</button>
+    </div>
+    <div id="srStatus" class="sr-only" aria-live="assertive"></div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="resultsScreen" class="card hidden">
+    <div class="hdr">GAME OVER</div>
+    <div class="final">
+      <div class="stars">&#9733; &#9733; &#9733;</div>
+      <div><span class="grade" id="finalScore">0</span><span class="outof"> / 20</span></div>
+      <div class="verdict-big" id="finalVerdict"></div>
+      <div class="meta" id="finalMeta"></div>
+      <div id="hiFlag"></div>
+    </div>
+    <div class="review">
+      <h3 id="reviewHead">THE ONES THAT GOT AWAY</h3>
+      <div id="missList"></div>
+    </div>
+    <button class="arcade-btn again-btn" id="againBtn">RUN IT BACK</button>
+    <button class="linkbtn" id="changeDivBtn">&laquo; Change division</button>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   DATA  — college mappings are intended to be primary-source
+   accurate. "NONE" = did not attend a U.S. college (turned pro,
+   played abroad, drafted out of high school, etc.)
+   tier: "main" (recognizable) | "deep" (obscure / surprising)
+   ============================================================ */
+const NONE = "No U.S. college";
+
+const ATHLETES = [
+  // ---- FOOTBALL ----
+  {n:"Tom Brady",       s:"football", c:"Michigan",            t:"main"},
+  {n:"Peyton Manning",  s:"football", c:"Tennessee",           t:"main"},
+  {n:"Patrick Mahomes", s:"football", c:"Texas Tech",          t:"main"},
+  {n:"Aaron Rodgers",   s:"football", c:"California",           t:"main"},
+  {n:"Drew Brees",      s:"football", c:"Purdue",              t:"main"},
+  {n:"Eli Manning",     s:"football", c:"Ole Miss",            t:"main"},
+  {n:"Tim Tebow",       s:"football", c:"Florida",             t:"main"},
+  {n:"Andrew Luck",     s:"football", c:"Stanford",            t:"main"},
+  {n:"Deshaun Watson",  s:"football", c:"Clemson",             t:"main"},
+  {n:"Lamar Jackson",   s:"football", c:"Louisville",          t:"main"},
+  {n:"Justin Herbert",  s:"football", c:"Oregon",              t:"main"},
+  {n:"Trevor Lawrence", s:"football", c:"Clemson",             t:"main"},
+  {n:"Dak Prescott",    s:"football", c:"Mississippi State",   t:"main"},
+  {n:"Saquon Barkley",  s:"football", c:"Penn State",          t:"main"},
+  {n:"Christian McCaffrey",s:"football",c:"Stanford",          t:"main"},
+  {n:"Derrick Henry",   s:"football", c:"Alabama",             t:"main"},
+  {n:"Barry Sanders",   s:"football", c:"Oklahoma State",      t:"main"},
+  {n:"Emmitt Smith",    s:"football", c:"Florida",             t:"main"},
+  {n:"Brett Favre",     s:"football", c:"Southern Miss",       t:"main"},
+  {n:"John Elway",      s:"football", c:"Stanford",            t:"main"},
+  {n:"Joe Montana",     s:"football", c:"Notre Dame",          t:"main"},
+  {n:"Dan Marino",      s:"football", c:"Pittsburgh",          t:"main"},
+  {n:"Deion Sanders",   s:"football", c:"Florida State",       t:"main"},
+  {n:"Reggie White",    s:"football", c:"Tennessee",           t:"main"},
+  {n:"Bo Jackson",      s:"football", c:"Auburn",              t:"main"},
+  {n:"Aaron Donald",    s:"football", c:"Pittsburgh",          t:"main"},
+  {n:"Travis Kelce",    s:"football", c:"Cincinnati",          t:"main"},
+  {n:"Rob Gronkowski",  s:"football", c:"Arizona",             t:"main"},
+  {n:"Calvin Johnson",  s:"football", c:"Georgia Tech",        t:"main"},
+  {n:"Adrian Peterson", s:"football", c:"Oklahoma",            t:"main"},
+  {n:"Ray Lewis",       s:"football", c:"Miami (FL)",          t:"main"},
+  {n:"Ed Reed",         s:"football", c:"Miami (FL)",          t:"main"},
+  {n:"Troy Polamalu",   s:"football", c:"USC",                 t:"main"},
+  {n:"Larry Fitzgerald",s:"football", c:"Pittsburgh",          t:"main"},
+  {n:"Julio Jones",     s:"football", c:"Alabama",             t:"main"},
+  {n:"Von Miller",      s:"football", c:"Texas A&M",           t:"main"},
+  {n:"Josh Allen",      s:"football", c:"Wyoming",             t:"deep"},
+  {n:"Walter Payton",   s:"football", c:"Jackson State",       t:"deep"},
+  {n:"Jerry Rice",      s:"football", c:"Mississippi Valley State",t:"deep"},
+  {n:"Khalil Mack",     s:"football", c:"Buffalo",             t:"deep"},
+  {n:"Antonio Brown",   s:"football", c:"Central Michigan",    t:"deep"},
+
+  // ---- BASKETBALL ----
+  {n:"Michael Jordan",  s:"basketball", c:"North Carolina",    t:"main"},
+  {n:"Stephen Curry",   s:"basketball", c:"Davidson",          t:"main"},
+  {n:"Larry Bird",      s:"basketball", c:"Indiana State",     t:"main"},
+  {n:"Magic Johnson",   s:"basketball", c:"Michigan State",    t:"main"},
+  {n:"Kareem Abdul-Jabbar",s:"basketball",c:"UCLA",            t:"main"},
+  {n:"Tim Duncan",      s:"basketball", c:"Wake Forest",       t:"main"},
+  {n:"Kevin Durant",    s:"basketball", c:"Texas",             t:"main"},
+  {n:"Russell Westbrook",s:"basketball",c:"UCLA",              t:"main"},
+  {n:"James Harden",    s:"basketball", c:"Arizona State",     t:"main"},
+  {n:"Klay Thompson",   s:"basketball", c:"Washington State",  t:"main"},
+  {n:"Chris Paul",      s:"basketball", c:"Wake Forest",       t:"main"},
+  {n:"Carmelo Anthony", s:"basketball", c:"Syracuse",          t:"main"},
+  {n:"Dwyane Wade",     s:"basketball", c:"Marquette",         t:"main"},
+  {n:"Allen Iverson",   s:"basketball", c:"Georgetown",        t:"main"},
+  {n:"Patrick Ewing",   s:"basketball", c:"Georgetown",        t:"main"},
+  {n:"Shaquille O'Neal",s:"basketball", c:"LSU",               t:"main"},
+  {n:"Charles Barkley", s:"basketball", c:"Auburn",            t:"main"},
+  {n:"Isiah Thomas",    s:"basketball", c:"Indiana",           t:"main"},
+  {n:"Reggie Miller",   s:"basketball", c:"UCLA",              t:"main"},
+  {n:"Anthony Davis",   s:"basketball", c:"Kentucky",          t:"main"},
+  {n:"John Wall",       s:"basketball", c:"Kentucky",          t:"main"},
+  {n:"Zion Williamson", s:"basketball", c:"Duke",              t:"main"},
+  {n:"Jayson Tatum",    s:"basketball", c:"Duke",              t:"main"},
+  {n:"Kyrie Irving",    s:"basketball", c:"Duke",              t:"main"},
+  {n:"Grant Hill",      s:"basketball", c:"Duke",              t:"main"},
+  {n:"Blake Griffin",   s:"basketball", c:"Oklahoma",          t:"main"},
+  {n:"Draymond Green",  s:"basketball", c:"Michigan State",    t:"main"},
+  {n:"LeBron James",    s:"basketball", c:NONE,                t:"main"},
+  {n:"Kobe Bryant",     s:"basketball", c:NONE,                t:"main"},
+  {n:"Kevin Garnett",   s:"basketball", c:NONE,                t:"main"},
+  {n:"Dwight Howard",   s:"basketball", c:NONE,                t:"main"},
+  {n:"Giannis Antetokounmpo",s:"basketball",c:NONE,            t:"main"},
+  {n:"Luka Doncic",     s:"basketball", c:NONE,                t:"main"},
+  {n:"Dirk Nowitzki",   s:"basketball", c:NONE,                t:"main"},
+  {n:"Kawhi Leonard",   s:"basketball", c:"San Diego State",   t:"deep"},
+  {n:"Damian Lillard",  s:"basketball", c:"Weber State",       t:"deep"},
+  {n:"Paul George",     s:"basketball", c:"Fresno State",      t:"deep"},
+  {n:"David Robinson",  s:"basketball", c:"Navy",              t:"deep"},
+  {n:"Christian Laettner",s:"basketball",c:"Duke",             t:"deep"},
+  {n:"Joel Embiid",     s:"basketball", c:"Kansas",            t:"deep"},
+  {n:"Nikola Jokic",    s:"basketball", c:NONE,                t:"deep"},
+  {n:"Tracy McGrady",   s:"basketball", c:NONE,                t:"deep"},
+
+  // ---- BASEBALL ----
+  {n:"Derek Jeter",     s:"baseball", c:NONE,                  t:"main"},
+  {n:"Alex Rodriguez",  s:"baseball", c:NONE,                  t:"main"},
+  {n:"Mike Trout",      s:"baseball", c:NONE,                  t:"main"},
+  {n:"Barry Bonds",     s:"baseball", c:"Arizona State",       t:"main"},
+  {n:"Jackie Robinson", s:"baseball", c:"UCLA",                t:"main"},
+  {n:"Frank Thomas",    s:"baseball", c:"Auburn",              t:"main"},
+  {n:"Mark McGwire",    s:"baseball", c:"USC",                 t:"main"},
+  {n:"Buster Posey",    s:"baseball", c:"Florida State",       t:"main"},
+  {n:"Stephen Strasburg",s:"baseball",c:"San Diego State",     t:"main"},
+  {n:"Gerrit Cole",     s:"baseball", c:"UCLA",                t:"deep"},
+  {n:"Kris Bryant",     s:"baseball", c:"San Diego",           t:"deep"},
+  {n:"Todd Helton",     s:"baseball", c:"Tennessee",           t:"deep"},
+  {n:"Dustin Pedroia",  s:"baseball", c:"Arizona State",       t:"deep"},
+
+  // ---- HOCKEY ----
+  {n:"Wayne Gretzky",   s:"hockey", c:NONE,                    t:"main"},
+  {n:"Sidney Crosby",   s:"hockey", c:NONE,                    t:"main"},
+  {n:"Connor McDavid",  s:"hockey", c:NONE,                    t:"main"},
+  {n:"Patrick Kane",    s:"hockey", c:NONE,                    t:"main"},
+  {n:"Auston Matthews", s:"hockey", c:NONE,                    t:"main"},
+  {n:"Jack Eichel",     s:"hockey", c:"Boston University",     t:"deep"},
+  {n:"Brian Leetch",    s:"hockey", c:"Boston College",        t:"deep"},
+  {n:"Jim Craig",       s:"hockey", c:"Boston University",     t:"deep"},
+
+  // ---- SOCCER ----
+  {n:"Mia Hamm",        s:"soccer", c:"North Carolina",        t:"main"},
+  {n:"Abby Wambach",    s:"soccer", c:"Florida",               t:"main"},
+  {n:"Alex Morgan",     s:"soccer", c:"California",             t:"main"},
+  {n:"Megan Rapinoe",   s:"soccer", c:"Portland",              t:"main"},
+  {n:"Christian Pulisic",s:"soccer",c:NONE,                    t:"main"},
+  {n:"Clint Dempsey",   s:"soccer", c:"Furman",                t:"deep"},
+  {n:"Brad Friedel",    s:"soccer", c:"UCLA",                  t:"deep"},
+  {n:"Claudio Reyna",   s:"soccer", c:"Virginia",              t:"deep"},
+  {n:"Alexi Lalas",     s:"soccer", c:"Rutgers",               t:"deep"},
+
+  // ---- TENNIS ----
+  {n:"Serena Williams", s:"tennis", c:NONE,                    t:"main"},
+  {n:"John Isner",      s:"tennis", c:"Georgia",               t:"main"},
+  {n:"James Blake",     s:"tennis", c:"Harvard",               t:"deep"},
+
+  // ---- GOLF ----
+  {n:"Tiger Woods",     s:"golf", c:"Stanford",                t:"main"},
+  {n:"Phil Mickelson",  s:"golf", c:"Arizona State",           t:"main"},
+  {n:"Jordan Spieth",   s:"golf", c:"Texas",                   t:"main"},
+  {n:"Jon Rahm",        s:"golf", c:"Arizona State",           t:"main"},
+  {n:"Rory McIlroy",    s:"golf", c:NONE,                      t:"main"},
+  {n:"Bryson DeChambeau",s:"golf",c:"SMU",                     t:"deep"},
+  {n:"Rickie Fowler",   s:"golf", c:"Oklahoma State",          t:"deep"},
+  {n:"Justin Thomas",   s:"golf", c:"Alabama",                 t:"deep"},
+  {n:"Collin Morikawa", s:"golf", c:"California",               t:"deep"},
+
+  // ---- EXPANSION: FOOTBALL (NFL) ----
+  {n:"Steve Young",       s:"football", c:"BYU",                 t:"main"},
+  {n:"Jim Kelly",         s:"football", c:"Miami (FL)",          t:"main"},
+  {n:"Warren Sapp",       s:"football", c:"Miami (FL)",          t:"main"},
+  {n:"Frank Gore",        s:"football", c:"Miami (FL)",          t:"main"},
+  {n:"Reggie Bush",       s:"football", c:"USC",                 t:"main"},
+  {n:"Champ Bailey",      s:"football", c:"Georgia",             t:"main"},
+  {n:"Hines Ward",        s:"football", c:"Georgia",             t:"main"},
+  {n:"Marshawn Lynch",    s:"football", c:"California",          t:"main"},
+  {n:"Philip Rivers",     s:"football", c:"NC State",            t:"main"},
+  {n:"Matt Ryan",         s:"football", c:"Boston College",      t:"main"},
+  {n:"Tony Romo",         s:"football", c:"Eastern Illinois",    t:"deep"},
+  {n:"Kurt Warner",       s:"football", c:"Northern Iowa",       t:"deep"},
+  {n:"Steve McNair",      s:"football", c:"Alcorn State",        t:"deep"},
+  {n:"Doug Williams",     s:"football", c:"Grambling State",     t:"deep"},
+  {n:"Terrell Owens",     s:"football", c:"Chattanooga",         t:"deep"},
+  {n:"Shannon Sharpe",    s:"football", c:"Savannah State",      t:"deep"},
+  {n:"Michael Strahan",   s:"football", c:"Texas Southern",      t:"deep"},
+  {n:"Cooper Kupp",       s:"football", c:"Eastern Washington",  t:"deep"},
+  {n:"Carson Wentz",      s:"football", c:"North Dakota State",  t:"deep"},
+  {n:"Ben Roethlisberger",s:"football", c:"Miami (OH)",          t:"deep"},
+  {n:"Jimmy Garoppolo",   s:"football", c:"Eastern Illinois",    t:"deep"},
+  {n:"Julian Edelman",    s:"football", c:"Kent State",          t:"deep"},
+  {n:"Antonio Gates",     s:"football", c:"Kent State",          t:"deep"},
+  {n:"Wes Welker",        s:"football", c:"Texas Tech",          t:"deep"},
+  {n:"Randy Moss",        s:"football", c:"Marshall",            t:"deep"},
+  {n:"Chad Johnson",      s:"football", c:"Oregon State",        t:"deep"},
+  {n:"Brian Urlacher",    s:"football", c:"New Mexico",          t:"deep"},
+  {n:"Donald Driver",     s:"football", c:"Alcorn State",        t:"deep"},
+  {n:"Jared Allen",       s:"football", c:"Idaho State",         t:"deep"},
+  {n:"Adam Thielen",      s:"football", c:"Minnesota State",     t:"deep"},
+
+  // ---- EXPANSION: BASKETBALL (NBA) ----
+  {n:"Hakeem Olajuwon",   s:"basketball", c:"Houston",           t:"main"},
+  {n:"Paul Pierce",       s:"basketball", c:"Kansas",            t:"main"},
+  {n:"Vince Carter",      s:"basketball", c:"North Carolina",    t:"main"},
+  {n:"Dikembe Mutombo",   s:"basketball", c:"Georgetown",        t:"main"},
+  {n:"Alonzo Mourning",   s:"basketball", c:"Georgetown",        t:"main"},
+  {n:"Bill Walton",       s:"basketball", c:"UCLA",              t:"main"},
+  {n:"Jalen Rose",        s:"basketball", c:"Michigan",          t:"main"},
+  {n:"Scottie Pippen",    s:"basketball", c:"Central Arkansas",  t:"deep"},
+  {n:"Dennis Rodman",     s:"basketball", c:"Southeastern Oklahoma State", t:"deep"},
+  {n:"Ben Wallace",       s:"basketball", c:"Virginia Union",    t:"deep"},
+  {n:"John Stockton",     s:"basketball", c:"Gonzaga",           t:"deep"},
+  {n:"Karl Malone",       s:"basketball", c:"Louisiana Tech",    t:"deep"},
+  {n:"Steve Nash",        s:"basketball", c:"Santa Clara",       t:"deep"},
+  {n:"Gary Payton",       s:"basketball", c:"Oregon State",      t:"deep"},
+  {n:"Jason Kidd",        s:"basketball", c:"California",         t:"deep"},
+  {n:"Tim Hardaway",      s:"basketball", c:"UTEP",              t:"deep"},
+  {n:"Chauncey Billups",  s:"basketball", c:"Colorado",          t:"deep"},
+  {n:"Ray Allen",         s:"basketball", c:"Connecticut",       t:"deep"},
+  {n:"Larry Johnson",     s:"basketball", c:"UNLV",              t:"deep"},
+  {n:"Donovan Mitchell",  s:"basketball", c:"Louisville",        t:"deep"},
+  {n:"Chris Webber",      s:"basketball", c:"Michigan",          t:"deep"},
+  {n:"Manu Ginobili",     s:"basketball", c:NONE,                t:"deep"},
+  {n:"Tony Parker",       s:"basketball", c:NONE,                t:"deep"},
+  {n:"Pau Gasol",         s:"basketball", c:NONE,                t:"deep"},
+  {n:"Yao Ming",          s:"basketball", c:NONE,                t:"deep"},
+  {n:"Vlade Divac",       s:"basketball", c:NONE,                t:"deep"},
+  {n:"Moses Malone",      s:"basketball", c:NONE,                t:"deep"},
+
+  // ---- EXPANSION: BASEBALL ----
+  {n:"David Price",       s:"baseball", c:"Vanderbilt",          t:"deep"},
+  {n:"Mark Prior",        s:"baseball", c:"USC",                 t:"deep"},
+  {n:"Jacoby Ellsbury",   s:"baseball", c:"Oregon State",        t:"deep"},
+  {n:"Troy Glaus",        s:"baseball", c:"UCLA",                t:"deep"},
+
+  // ---- EXPANSION: HOCKEY ----
+  {n:"Brett Hull",        s:"hockey", c:"Minnesota Duluth",      t:"deep"},
+  {n:"Tony Amonte",       s:"hockey", c:"Boston University",     t:"deep"},
+
+  // ---- EXPANSION: SOCCER ----
+  {n:"Landon Donovan",    s:"soccer", c:NONE,                    t:"main"},
+  {n:"Tim Howard",        s:"soccer", c:NONE,                    t:"deep"},
+
+  // ---- EXPANSION: GOLF ----
+  {n:"Scottie Scheffler", s:"golf", c:"Texas",                   t:"main"},
+  {n:"Patrick Cantlay",   s:"golf", c:"UCLA",                    t:"deep"},
+  {n:"Max Homa",          s:"golf", c:"California",               t:"deep"},
+];
+
+const POOLS = {
+  football:["Michigan","Tennessee","Texas Tech","California","Purdue","Ole Miss","Florida","Stanford","Clemson","Louisville","Oregon","Mississippi State","Penn State","Alabama","Oklahoma State","Southern Miss","Notre Dame","Pittsburgh","Florida State","Cincinnati","Arizona","Georgia Tech","Oklahoma","Miami (FL)","USC","Texas A&M","Wyoming","Jackson State","Mississippi Valley State","Buffalo","Central Michigan","Auburn","Ohio State","Georgia","LSU","Texas","Nebraska","Wisconsin","UCLA","Eastern Illinois","Northern Iowa","Alcorn State","Grambling State","Chattanooga","Savannah State","Texas Southern","Eastern Washington","North Dakota State","Miami (OH)","Kent State","Marshall","New Mexico","Idaho State","Minnesota State","BYU","NC State","Oregon State","Boston College"],
+  basketball:["North Carolina","Davidson","Indiana State","Michigan State","UCLA","Wake Forest","Texas","Arizona State","Washington State","Syracuse","Marquette","Georgetown","LSU","Auburn","Indiana","Kentucky","Duke","Oklahoma","San Diego State","Weber State","Fresno State","Navy","Kansas","Connecticut","Villanova","Arizona","Memphis","Gonzaga","Louisville","Florida","Michigan","Ohio State","Central Arkansas","Southeastern Oklahoma State","Virginia Union","Louisiana Tech","Santa Clara","UTEP","Colorado","UNLV","Houston","Oregon State","California"],
+  baseball:["Arizona State","UCLA","Auburn","USC","Florida State","San Diego State","San Diego","Tennessee","Stanford","Vanderbilt","LSU","Texas","Miami (FL)","Florida","Cal State Fullerton","Oregon State","Mississippi State","Arkansas","North Carolina"],
+  hockey:["Boston University","Boston College","Michigan","Minnesota","North Dakota","Wisconsin","Denver","Minnesota Duluth","Maine","Notre Dame","Michigan State","Harvard"],
+  soccer:["North Carolina","Florida","California","Portland","Furman","UCLA","Virginia","Rutgers","Stanford","Indiana","Maryland","Wake Forest","Clemson","Akron"],
+  tennis:["Georgia","Harvard","Stanford","USC","UCLA","Virginia","Florida","Illinois","Ohio State","Texas","Vanderbilt","Baylor"],
+  golf:["Stanford","Arizona State","Texas","SMU","Oklahoma State","Alabama","California","USC","Georgia","Oklahoma","Florida State","LSU","Wake Forest","Illinois","UCLA"],
+};
+
+/* School crest: name -> [abbreviation, primaryColor(bg), secondaryColor(text/border)].
+   Colors are team colors; best-effort for smaller programs — easy to tweak. */
+const SCHOOLS = {
+  "Michigan":["MICH","#00274C","#FFCB05"], "Tennessee":["TENN","#FF8200","#FFFFFF"],
+  "Texas Tech":["TTU","#CC0000","#000000"], "California":["CAL","#003262","#FDB515"],
+  "Purdue":["PUR","#CEB888","#000000"], "Ole Miss":["OLE","#002147","#CE1126"],
+  "Florida":["FLA","#0021A5","#FA4616"], "Stanford":["STAN","#8C1515","#FFFFFF"],
+  "Clemson":["CLEM","#F56600","#522D80"], "Louisville":["LOU","#AD0000","#000000"],
+  "Oregon":["ORE","#154733","#FEE123"], "Mississippi State":["MSST","#5D1725","#FFFFFF"],
+  "Penn State":["PSU","#041E42","#FFFFFF"], "Alabama":["BAMA","#9E1B32","#FFFFFF"],
+  "Oklahoma State":["OKST","#FF7300","#000000"], "Southern Miss":["USM","#000000","#FFAB00"],
+  "Notre Dame":["ND","#0C2340","#C99700"], "Pittsburgh":["PITT","#003594","#FFB81C"],
+  "Florida State":["FSU","#782F40","#CEB888"], "Cincinnati":["CIN","#E00122","#000000"],
+  "Arizona":["ARIZ","#AB0520","#0C234B"], "Georgia Tech":["GT","#B3A369","#003057"],
+  "Oklahoma":["OU","#841617","#FFFFFF"], "Miami (FL)":["MIA","#F47321","#005030"],
+  "USC":["USC","#990000","#FFC72C"], "Texas A&M":["TAMU","#500000","#FFFFFF"],
+  "Wyoming":["WYO","#492F24","#FFC425"], "Jackson State":["JSU","#14377D","#FFFFFF"],
+  "Mississippi Valley State":["MVSU","#00582C","#FFFFFF"], "Buffalo":["BUFF","#005BBB","#FFFFFF"],
+  "Central Michigan":["CMU","#6A0032","#FFC82E"], "Auburn":["AUB","#0C2340","#DD550C"],
+  "Ohio State":["OSU","#BB0000","#B0B7BC"], "Georgia":["UGA","#BA0C2F","#000000"],
+  "LSU":["LSU","#461D7C","#FDD023"], "Texas":["TEX","#BF5700","#FFFFFF"],
+  "Nebraska":["NEB","#E41C38","#FFFFFF"], "Wisconsin":["WIS","#C5050C","#FFFFFF"],
+  "UCLA":["UCLA","#2D68C4","#F2A900"], "North Carolina":["UNC","#4B9CD3","#13294B"],
+  "Davidson":["DAV","#C8102E","#000000"], "Indiana State":["INST","#00669A","#FFFFFF"],
+  "Michigan State":["MSU","#18453B","#FFFFFF"], "Wake Forest":["WAKE","#9E7E38","#000000"],
+  "Arizona State":["ASU","#8C1D40","#FFC627"], "Washington State":["WSU","#981E32","#5E6A71"],
+  "Syracuse":["SYR","#F76900","#000E54"], "Marquette":["MARQ","#003366","#FFCC00"],
+  "Georgetown":["GTWN","#00407A","#63666A"], "Indiana":["IND","#990000","#FFFFFF"],
+  "Kentucky":["UK","#0033A0","#FFFFFF"], "Duke":["DUKE","#00539B","#FFFFFF"],
+  "San Diego State":["SDSU","#A6192E","#000000"], "Weber State":["WEB","#582C83","#FFFFFF"],
+  "Fresno State":["FRES","#DB0032","#16284B"], "Navy":["NAVY","#00205B","#C5B783"],
+  "Kansas":["KU","#0051BA","#E8000D"], "Connecticut":["CONN","#000E2F","#FFFFFF"],
+  "Villanova":["NOVA","#00205B","#13B5EA"], "Memphis":["MEM","#003087","#898D8D"],
+  "Gonzaga":["ZAGS","#002967","#C8102E"], "Vanderbilt":["VAND","#000000","#CFAE70"],
+  "San Diego":["USD","#003B70","#75B2DD"], "Cal State Fullerton":["CSUF","#00274C","#FF7900"],
+  "Oregon State":["ORST","#DC4405","#000000"], "Arkansas":["ARK","#9D2235","#FFFFFF"],
+  "Boston University":["BU","#CC0000","#FFFFFF"], "Boston College":["BC","#98002E","#BC9B6A"],
+  "Minnesota":["MINN","#7A0019","#FFCC33"], "North Dakota":["UND","#009A44","#000000"],
+  "Denver":["DEN","#862633","#C8B05D"], "Minnesota Duluth":["DULU","#7A0019","#FFCC33"],
+  "Maine":["MAIN","#003263","#FFFFFF"], "Harvard":["HARV","#A51C30","#FFFFFF"],
+  "Portland":["PORT","#5C068C","#FFFFFF"], "Furman":["FUR","#582C83","#FFFFFF"],
+  "Virginia":["UVA","#232D4B","#F84C1E"], "Rutgers":["RUT","#CC0033","#000000"],
+  "Maryland":["UMD","#E03A3E","#FFD520"], "Akron":["AKR","#041E42","#A89968"],
+  "Illinois":["ILL","#13294B","#E84A27"], "Baylor":["BAY","#154734","#FFB81C"],
+  "SMU":["SMU","#C8102E","#354CA1"],
+  "Eastern Illinois":["EIU","#1D4F91","#A7A8AA"], "Northern Iowa":["UNI","#4F2D7F","#FFCC00"],
+  "Alcorn State":["ALC","#582C83","#D4AF37"], "Grambling State":["GRAM","#000000","#FFB81C"],
+  "Chattanooga":["CHAT","#06214D","#E0AA0F"], "Savannah State":["SAV","#F47B20","#003087"],
+  "Texas Southern":["TXSO","#660033","#A7A8AA"], "Eastern Washington":["EWU","#A10022","#000000"],
+  "North Dakota State":["NDSU","#005643","#FFC72C"], "Miami (OH)":["MOH","#B61F2E","#FFFFFF"],
+  "Kent State":["KENT","#002664","#EFAB00"], "Marshall":["MRSH","#00833D","#FFFFFF"],
+  "New Mexico":["UNM","#BA0C2F","#63666A"], "Idaho State":["IDST","#F06A00","#000000"],
+  "Minnesota State":["MNSU","#582C83","#FFC72C"], "BYU":["BYU","#002E5D","#FFFFFF"],
+  "NC State":["NCST","#CC0000","#000000"], "Central Arkansas":["UCA","#4F2D7F","#A2AAAD"],
+  "Southeastern Oklahoma State":["SEOK","#13294B","#C6AA76"], "Virginia Union":["VAU","#7A0019","#9EA2A2"],
+  "Louisiana Tech":["LATC","#002F8B","#E31B23"], "Santa Clara":["SCU","#862633","#B5A36A"],
+  "UTEP":["UTEP","#FF8200","#041E42"], "Colorado":["COLO","#000000","#CFB87C"],
+  "UNLV":["UNLV","#CF0A2C","#888888"], "Houston":["HOU","#C8102E","#FFFFFF"],
+};
+
+const SPORT_META = {
+  football:  {label:"FOOTBALL",   color:"#19e0ff"},
+  basketball:{label:"BASKETBALL", color:"#ff7b1a"},
+  baseball:  {label:"BASEBALL",   color:"#39ff6a"},
+  hockey:    {label:"HOCKEY",     color:"#8aa0ff"},
+  soccer:    {label:"SOCCER",     color:"#1affc6"},
+  tennis:    {label:"TENNIS",     color:"#f3ff3d"},
+  golf:      {label:"GOLF",       color:"#ff4fd0"},
+};
+
+const LEAGUE_BY_SPORT = {
+  football:"NFL", basketball:"NBA", baseball:"MLB", hockey:"NHL",
+  soccer:"USMNT", tennis:"ATP", golf:"PGA Tour"
+};
+const LEAGUE_OVERRIDE = {
+  "Serena Williams":"WTA",
+  "Mia Hamm":"USWNT", "Abby Wambach":"USWNT", "Alex Morgan":"USWNT", "Megan Rapinoe":"USWNT"
+};
+function leagueFor(ath){ return LEAGUE_OVERRIDE[ath.n] || LEAGUE_BY_SPORT[ath.s]; }
+
+const CORRECT_WORDS = ["BOOM!","TOUCHDOWN!","SWEET!","NICE!","CASH!","BANG!"];
+const WRONG_WORDS   = ["FUMBLE!","INTERCEPTED!","SACKED!","NO GOOD!","BRICK!"];
+
+const QUESTIONS_PER_ROUND = 20;
+const LETTERS = ["A","B","C","D","E","F","G","H"];
+
+/* ---------- helpers ---------- */
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function sample(arr,k){ return shuffle(arr).slice(0,k); }
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function buildOptions(ath){
+  const correct = ath.c;
+  const pool = POOLS[ath.s].filter(c => c !== correct);
+  let distractors;
+  if(correct === NONE){ distractors = sample(pool, 7); }
+  else { distractors = (Math.random() < 0.45) ? [...sample(pool, 6), NONE] : sample(pool, 7); }
+  return shuffle([correct, ...distractors]);
+}
+
+/* ---------- storage (safe) ---------- */
+function bestKey(){ return 'rollcall_best_'+league+'_'+diff; }
+function getBest(){ try{ return parseInt(localStorage.getItem(bestKey())||'0',10)||0; }catch(e){ return 0; } }
+function setBest(v){ try{ localStorage.setItem(bestKey(), String(v)); }catch(e){} }
+
+/* ---------- state ---------- */
+let diff = "mainstream";
+let league = "all";
+let round = [];
+let idx = 0, score = 0, streak = 0, answered = false;
+let misses = [];
+
+const $ = id => document.getElementById(id);
+const startScreen = $("startScreen"), quizScreen = $("quizScreen"), resultsScreen = $("resultsScreen");
+
+function currentPool(){
+  let pool = ATHLETES.slice();
+  if(diff==="mainstream") pool = pool.filter(a=>a.t==="main");
+  else if(diff==="deepcut") pool = pool.filter(a=>a.t==="deep");
+  if(league==="nfl") pool = pool.filter(a=>a.s==="football");
+  else if(league==="nba") pool = pool.filter(a=>a.s==="basketball");
+  return pool;
+}
+function roundLen(){ return Math.min(QUESTIONS_PER_ROUND, currentPool().length); }
+function diffLabel(){ return diff==="mainstream" ? "ROOKIE" : diff==="deepcut" ? "ALL-MADDEN" : "PRO"; }
+function comboLabel(){ return (league==="all" ? "" : league.toUpperCase()+" \u00b7 ") + diffLabel(); }
+function updatePoolNote(){ $("poolNote").textContent = `${currentPool().length} athletes loaded \u00b7 ${roundLen()} per game`; }
+function updateBest(){
+  const b = getBest(), N = roundLen();
+  $("bestNote").textContent = b>0 ? `BEST (${comboLabel()}): ${b}/${N}` : `NO HIGH SCORE YET \u2014 ${comboLabel()}`;
+}
+
+/* difficulty selector */
+$("diffSeg").querySelectorAll("button").forEach(b=>{
+  b.addEventListener("click",()=>{
+    $("diffSeg").querySelectorAll("button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");
+    diff = b.dataset.diff;
+    try{ localStorage.setItem('rollcall_diff', diff); }catch(e){}
+    updatePoolNote(); updateBest();
+  });
+});
+
+/* league selector */
+$("leagueSeg").querySelectorAll("button").forEach(b=>{
+  b.addEventListener("click",()=>{
+    $("leagueSeg").querySelectorAll("button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");
+    league = b.dataset.league;
+    try{ localStorage.setItem('rollcall_league', league); }catch(e){}
+    updatePoolNote(); updateBest();
+  });
+});
+
+/* view toggle */
+function setView(v){
+  document.body.classList.toggle('mobileview', v==='mobile');
+  $("viewToggle").querySelectorAll("button").forEach(b=>b.classList.toggle("on", b.dataset.view===v));
+  try{ localStorage.setItem('rollcall_view', v); }catch(e){}
+}
+$("viewToggle").querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>setView(b.dataset.view)));
+
+/* flow */
+$("startBtn").addEventListener("click", startRound);
+$("againBtn").addEventListener("click", startRound);
+$("changeDivBtn").addEventListener("click", ()=>{
+  resultsScreen.classList.add("hidden");
+  startScreen.classList.remove("hidden");
+  updatePoolNote(); updateBest();
+});
+
+function startRound(){
+  const pool = currentPool();
+  round = sample(pool, Math.min(QUESTIONS_PER_ROUND, pool.length)).map(a=>({ ath:a, options:buildOptions(a) }));
+  $("qTot").textContent = round.length;
+  idx = 0; score = 0; streak = 0; misses = [];
+  document.body.classList.remove("onfire");
+  startScreen.classList.add("hidden");
+  resultsScreen.classList.add("hidden");
+  quizScreen.classList.remove("hidden");
+  renderQuestion();
+}
+
+function renderQuestion(){
+  answered = false;
+  const q = round[idx];
+  const meta = SPORT_META[q.ath.s];
+
+  $("qNum").textContent = idx+1;
+  $("scoreVal").textContent = score;
+  $("streakVal").textContent = streak;
+  $("progFill").style.width = (idx / round.length * 100) + "%";
+
+  const badge = $("sportBadge");
+  badge.textContent = meta.label;
+  badge.style.background = meta.color;
+  const lg = $("leagueBadge");
+  lg.textContent = leagueFor(q.ath);
+  lg.style.color = meta.color;
+  lg.style.borderColor = meta.color;
+  $("athleteName").textContent = q.ath.n;
+
+  const verdict = $("verdict");
+  verdict.className = "verdict"; verdict.textContent = "";
+  $("srStatus").textContent = "";
+  $("nextBtn").classList.remove("show");
+
+  const box = $("options");
+  box.innerHTML = "";
+  q.options.forEach((opt,i)=>{
+    const btn = document.createElement("button");
+    btn.className = "opt";
+    btn.style.animationDelay = (i*0.035)+"s";
+    btn.setAttribute("aria-label", LETTERS[i]+": "+opt);
+    const sc = SCHOOLS[opt];
+    const crest = sc
+      ? `<span class="crest" style="background:${sc[1]};color:${sc[2]};border-color:${sc[2]}">${sc[0]}</span>`
+      : `<span class="crest crest-none">&mdash;</span>`;
+    btn.innerHTML = `${crest}<span class="opt-name">${opt}</span><span class="keycap">${LETTERS[i]}</span>`;
+    btn.addEventListener("click", ()=>choose(btn, opt, q));
+    box.appendChild(btn);
+  });
+}
+
+function choose(btn, opt, q){
+  if(answered) return;
+  answered = true;
+  const correct = q.ath.c;
+  [...$("options").querySelectorAll(".opt")].forEach(b=>{
+    b.disabled = true;
+    const label = b.querySelector("span:last-child").textContent;
+    if(label === correct) b.classList.add("correct");
+    else if(b === btn) b.classList.add("wrong");
+    else b.classList.add("dim");
+  });
+
+  const verdict = $("verdict");
+  if(opt === correct){
+    score++; streak++;
+    verdict.textContent = streak>=3 ? `ON FIRE x${streak}!` : pick(CORRECT_WORDS);
+    verdict.classList.add("verdict","hit","show");
+    if(streak>=3) document.body.classList.add("onfire");
+    $("srStatus").textContent = `Correct. ${q.ath.n}: ${correct}.`;
+    flashCard("flash");
+  } else {
+    streak = 0;
+    verdict.textContent = pick(WRONG_WORDS);
+    verdict.classList.add("verdict","miss","show");
+    document.body.classList.remove("onfire");
+    misses.push({name:q.ath.n, sport:SPORT_META[q.ath.s].label, correct, gave:opt});
+    $("srStatus").textContent = `Wrong. The answer is ${correct}.`;
+    flashCard("shake");
+  }
+  $("scoreVal").textContent = score;
+  $("streakVal").textContent = streak;
+  $("progFill").style.width = ((idx+1) / round.length * 100) + "%";
+
+  const nextBtn = $("nextBtn");
+  nextBtn.textContent = (idx === round.length-1) ? "FINAL \u203a" : "NEXT \u203a";
+  nextBtn.classList.add("show");
+  nextBtn.focus();
+}
+
+function flashCard(cls){
+  quizScreen.classList.remove("flash","shake");
+  void quizScreen.offsetWidth;
+  quizScreen.classList.add(cls);
+  setTimeout(()=>quizScreen.classList.remove(cls), 450);
+}
+
+$("nextBtn").addEventListener("click", advance);
+function advance(){
+  if(!answered) return;
+  idx++;
+  if(idx >= round.length) showResults();
+  else renderQuestion();
+}
+
+function showResults(){
+  quizScreen.classList.add("hidden");
+  resultsScreen.classList.remove("hidden");
+  $("progFill").style.width = "100%";
+
+  const total = round.length;
+  $("finalScore").textContent = score;
+  document.querySelector(".outof").textContent = " / " + total;
+
+  const pct = Math.round(score/total*100);
+  $("finalMeta").textContent = `${pct}% \u00b7 ${comboLabel()}`;
+
+  const v = $("finalVerdict");
+  if(pct===100) v.textContent="PERFECT GAME \u2014 HALL OF FAME";
+  else if(pct>=80) v.textContent="M V P";
+  else if(pct>=60) v.textContent="ALL-PRO";
+  else if(pct>=40) v.textContent="ROLE PLAYER";
+  else v.textContent="PRACTICE SQUAD";
+
+  const prev = getBest();
+  const isHigh = score > prev;
+  if(isHigh) setBest(score);
+  const flag = $("hiFlag");
+  if(isHigh && score>0){ flag.className=""; flag.innerHTML = `<div class="hi-flag">\u2605 NEW HIGH SCORE \u2605</div>`; }
+  else { flag.className=""; flag.innerHTML = `<div class="best-line">BEST (${comboLabel()}): ${Math.max(prev,score)}/${total}</div>`; }
+
+  const list = $("missList");
+  if(misses.length===0){
+    $("reviewHead").textContent = "FLAWLESS VICTORY";
+    list.innerHTML = `<div class="allright">NO MISSES. RESPECT.</div>`;
+  } else {
+    $("reviewHead").textContent = `THE ONES THAT GOT AWAY (${misses.length})`;
+    list.innerHTML = misses.map(m=>`
+      <div class="miss-row">
+        <div class="who">${m.name}<span>${m.sport}</span></div>
+        <div class="ans"><div class="right">${m.correct}</div><div class="gave">you said: ${m.gave}</div></div>
+      </div>`).join("");
+  }
+  $("againBtn").focus();
+}
+
+/* ---------- keyboard ---------- */
+document.addEventListener("keydown", e=>{
+  if(!quizScreen.classList.contains("hidden")){
+    const k = e.key.toLowerCase();
+    if(!answered){
+      let i = -1;
+      if(k>='1' && k<='8') i = (+k) - 1;
+      else if(k>='a' && k<='h') i = k.charCodeAt(0) - 97;
+      if(i>=0){ const btns=$("options").children; if(btns[i]){ e.preventDefault(); btns[i].click(); } }
+    } else if(e.key==="Enter" || e.key===" " || k==="n" || e.key==="ArrowRight"){
+      e.preventDefault(); advance();
+    }
+    return;
+  }
+  if(!startScreen.classList.contains("hidden")){
+    if(e.key==="Enter"){ e.preventDefault(); startRound(); }
+  } else if(!resultsScreen.classList.contains("hidden")){
+    if(e.key==="Enter"){ e.preventDefault(); startRound(); }
+  }
+});
+
+/* ---------- init ---------- */
+(function(){
+  let sd; try{ sd = localStorage.getItem('rollcall_diff'); }catch(e){}
+  if(sd && ["mainstream","mixed","deepcut"].includes(sd)){
+    diff = sd;
+    $("diffSeg").querySelectorAll("button").forEach(b=>b.classList.toggle("on", b.dataset.diff===diff));
+  }
+  let slg; try{ slg = localStorage.getItem('rollcall_league'); }catch(e){}
+  if(slg && ["all","nfl","nba"].includes(slg)){
+    league = slg;
+    $("leagueSeg").querySelectorAll("button").forEach(b=>b.classList.toggle("on", b.dataset.league===league));
+  }
+  let sv; try{ sv = localStorage.getItem('rollcall_view'); }catch(e){}
+  if(sv==="mobile") setView("mobile");
+  updatePoolNote(); updateBest();
+})();
+</script>
+</body>
+</html>
