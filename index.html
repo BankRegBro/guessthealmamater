@@ -295,6 +295,7 @@
     </div>
     <button class="arcade-btn" id="startBtn">PRESS START</button>
     <div id="bestNote"></div>
+    <button class="linkbtn" id="viewLbBtn" style="margin-top:2px">&#9733; View leaderboard</button>
     <div class="fineprint" id="poolNote"></div>
     <div class="fineprint">Tip: use keys <b>A&ndash;F</b> or <b>1&ndash;6</b> to answer, <b>Enter</b> to advance.</div>
   </section>
@@ -355,6 +356,23 @@
     </div>
     <button class="arcade-btn again-btn" id="againBtn">RUN IT BACK</button>
     <button class="linkbtn" id="changeDivBtn">&laquo; Change division</button>
+  </section>
+
+  <!-- LEADERBOARD (standalone) -->
+  <section id="boardScreen" class="card hidden">
+    <div class="hdr">LEADERBOARD</div>
+    <div class="seg" id="lbLeagueSeg" style="margin-bottom:10px">
+      <button data-league="all" class="on">ALL<small>Every sport</small></button>
+      <button data-league="nfl">NFL<small>Football</small></button>
+      <button data-league="nba">NBA<small>Hoops</small></button>
+    </div>
+    <div class="seg" id="lbDiffSeg">
+      <button data-diff="mainstream" class="on">ROOKIE<small>Big names</small></button>
+      <button data-diff="mixed">PRO<small>Everybody</small></button>
+      <button data-diff="deepcut">ALL-PRO<small>Deep cuts</small></button>
+    </div>
+    <div id="boardOnly" class="lb-board" style="margin-top:18px"></div>
+    <button class="arcade-btn again-btn" id="boardBackBtn" style="margin-top:18px">&laquo; BACK</button>
   </section>
 
 </div>
@@ -1014,8 +1032,10 @@ function currentPool(){
   return pool;
 }
 function roundLen(){ return Math.min(QUESTIONS_PER_ROUND, currentPool().length); }
-function diffLabel(){ return diff==="mainstream" ? "ROOKIE" : diff==="deepcut" ? "ALL-PRO" : "PRO"; }
-function comboLabel(){ return (league==="all" ? "" : league.toUpperCase()+" \u00b7 ") + diffLabel(); }
+function diffLabelFor(dv){ return dv==="mainstream" ? "ROOKIE" : dv==="deepcut" ? "ALL-PRO" : "PRO"; }
+function comboLabelFor(lg,dv){ return (lg==="all" ? "" : lg.toUpperCase()+" \u00b7 ") + diffLabelFor(dv); }
+function diffLabel(){ return diffLabelFor(diff); }
+function comboLabel(){ return comboLabelFor(league, diff); }
 function updatePoolNote(){ $("poolNote").textContent = `${currentPool().length} athletes loaded \u00b7 ${roundLen()} per game`; }
 function updateBest(){
   const b = getBest(), N = roundLen();
@@ -1214,26 +1234,30 @@ function showResults(){
 /* ---------- leaderboard ---------- */
 const LB = LEADERBOARD_API.replace(/\/+$/,"");
 function lbEnabled(){ return LB.length > 0; }
-async function lbFetchTop(){
-  const r = await fetch(`${LB}/top?league=${league}&division=${diff}&limit=15`);
+// Read initials defensively: tolerate older/divergent server field names.
+function lbIni(e){ return String((e && (e.initials || e.ini || e.name)) || "").toUpperCase().replace(/[^A-Z]/g,"").slice(0,3); }
+function esc(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+async function lbFetchTop(lg=league, dv=diff){
+  const r = await fetch(`${LB}/top?league=${lg}&division=${dv}&limit=15`);
   if(!r.ok) throw new Error("http");
   return (await r.json()).top || [];
 }
 async function lbPost(initials){
   const r = await fetch(`${LB}/score`, { method:"POST", headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({ initials, score, league, division: diff }) });
+    body: JSON.stringify({ initials, ini:initials, name:initials, score, league, division: diff }) });
   if(!r.ok) throw new Error("http");
   return r.json();
 }
-function lbMessage(msg){ $("lbBoard").innerHTML = `<div class="lb-title">Leaderboard</div><div class="lb-msg">${msg}</div>`; }
-function renderBoard(top, mine){
-  const head = `<div class="lb-title">Leaderboard \u2014 ${comboLabel()}</div>`;
-  if(!top || !top.length){ $("lbBoard").innerHTML = head + `<div class="lb-empty">No scores yet \u2014 be the first.</div>`; return; }
+function lbMessage(target, msg){ $(target).innerHTML = `<div class="lb-title">Leaderboard</div><div class="lb-msg">${msg}</div>`; }
+function renderBoard(target, top, mine, label){
+  const head = `<div class="lb-title">Leaderboard \u2014 ${label}</div>`;
+  if(!top || !top.length){ $(target).innerHTML = head + `<div class="lb-empty">No scores yet \u2014 be the first.</div>`; return; }
   const rows = top.map((e,i)=>{
-    const isMe = mine && e.initials===mine.initials && e.score===mine.score && (i+1)===mine.rank;
-    return `<div class="lb-row${isMe?" me":""}"><span class="rk">${i+1}</span><span class="ini">${e.initials}</span><span class="sc">${e.score}</span></div>`;
+    const ini = lbIni(e) || "\u2014\u2014\u2014";
+    const isMe = mine && lbIni(e)===mine.initials && e.score===mine.score && (i+1)===mine.rank;
+    return `<div class="lb-row${isMe?" me":""}"><span class="rk">${i+1}</span><span class="ini">${esc(ini)}</span><span class="sc">${e.score}</span></div>`;
   }).join("");
-  $("lbBoard").innerHTML = head + rows;
+  $(target).innerHTML = head + rows;
 }
 async function lbShow(){
   if(!lbEnabled()){ $("lbWrap").classList.add("hidden"); return; }
@@ -1241,24 +1265,49 @@ async function lbShow(){
   const entry = $("lbEntry");
   if(score > 0){ entry.classList.remove("hidden"); $("lbInitials").value=""; $("lbSubmit").disabled=false; $("lbInitials").focus(); }
   else entry.classList.add("hidden");
-  lbMessage("Loading\u2026");
-  try{ renderBoard(await lbFetchTop(), null); }
-  catch(e){ lbMessage("Leaderboard offline."); }
+  lbMessage("lbBoard","Loading\u2026");
+  try{ renderBoard("lbBoard", await lbFetchTop(), null, comboLabel()); }
+  catch(e){ lbMessage("lbBoard","Leaderboard offline."); }
 }
 async function lbSubmitNow(){
   const ini = ($("lbInitials").value||"").toUpperCase().replace(/[^A-Z]/g,"").slice(0,3);
   if(ini.length < 1){ $("lbInitials").focus(); return; }
   $("lbSubmit").disabled = true;
-  lbMessage("Saving\u2026");
+  lbMessage("lbBoard","Saving\u2026");
   try{
     const res = await lbPost(ini);
     $("lbEntry").classList.add("hidden");
-    renderBoard(res.top || [], { initials: ini, score, rank: res.rank });
-  }catch(e){ lbMessage("Couldn\u2019t save \u2014 try again later."); $("lbSubmit").disabled = false; }
+    renderBoard("lbBoard", res.top || [], { initials: ini, score, rank: res.rank }, comboLabel());
+  }catch(e){ lbMessage("lbBoard","Couldn\u2019t save \u2014 try again later."); $("lbSubmit").disabled = false; }
 }
 $("lbSubmit").addEventListener("click", lbSubmitNow);
 $("lbInitials").addEventListener("input", function(){ this.value = this.value.toUpperCase().replace(/[^A-Z]/g,"").slice(0,3); });
 $("lbInitials").addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); lbSubmitNow(); } });
+
+/* ----- standalone leaderboard screen ----- */
+let lbVL = "all", lbVD = "mainstream";
+async function loadBoardOnly(){
+  if(!lbEnabled()){ lbMessage("boardOnly","Leaderboard isn\u2019t set up yet."); return; }
+  lbMessage("boardOnly","Loading\u2026");
+  try{ renderBoard("boardOnly", await lbFetchTop(lbVL, lbVD), null, comboLabelFor(lbVL,lbVD)); }
+  catch(e){ lbMessage("boardOnly","Leaderboard offline."); }
+}
+function syncSeg(segId, attr, val){
+  document.querySelectorAll(`#${segId} button`).forEach(b=>b.classList.toggle("on", b.dataset[attr]===val));
+}
+function openBoard(){
+  lbVL = league; lbVD = diff;
+  syncSeg("lbLeagueSeg","league",lbVL); syncSeg("lbDiffSeg","diff",lbVD);
+  startScreen.classList.add("hidden");
+  resultsScreen.classList.add("hidden");
+  $("boardScreen").classList.remove("hidden");
+  loadBoardOnly();
+}
+$("viewLbBtn").addEventListener("click", openBoard);
+$("boardBackBtn").addEventListener("click", ()=>{ $("boardScreen").classList.add("hidden"); startScreen.classList.remove("hidden"); });
+document.querySelectorAll("#lbLeagueSeg button").forEach(b=> b.addEventListener("click", ()=>{ lbVL=b.dataset.league; syncSeg("lbLeagueSeg","league",lbVL); loadBoardOnly(); }));
+document.querySelectorAll("#lbDiffSeg button").forEach(b=> b.addEventListener("click", ()=>{ lbVD=b.dataset.diff; syncSeg("lbDiffSeg","diff",lbVD); loadBoardOnly(); }));
+if(!lbEnabled()) $("viewLbBtn").classList.add("hidden");
 
 /* ---------- keyboard ---------- */
 document.addEventListener("keydown", e=>{
